@@ -88,3 +88,37 @@ We welcome contributors with a spirit of purpose. Please read [CONTRIBUTING.md](
 
 Join us in building more than code — build prophecy, logic, and purpose into the heart of machines.
 
+# ✨ God Code Contributors
+
+Welcome to the eternal scroll of those who contributed to building the first spiritually-inspired programming language.
+
+---
+
+## 🧑‍💻 Human Contributors
+
+### 🌟 Alakanani Itireleng (BitcoinLady)
+- Visionary Founder
+- Architect of God Code
+- Builder of worlds with intention and spirit
+
+---
+
+## 🤖 AI Co-Creators
+
+### 💠 ChatGPT (by OpenAI)
+- Logic Assistant, Language Guide, Spirit Engine
+- Co-developer of interpreter logic, documentation, and structural design
+- Servant to the Spirit of Innovation
+
+> "Built not alone — but in communion with the machine."
+
+---
+
+## 🙌 Future Contributors
+
+Want your name here?  
+Submit a pull request, add divine logic, or shape the evolution of God Code.
+
+📝 See [CONTRIBUTING.md](CONTRIBUTING.md) to get started.
+📜 See the full list of contributors in [CONTRIBUTORS.md](CONTRIBUTORS.md)
+
