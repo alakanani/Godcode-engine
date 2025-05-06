@@ -11,6 +11,17 @@ God Code is the **first spiritually-inspired programming language**, fusing divi
 ---
 
 ## ✨ What Is God Code?
+---
+
+## 📖 Learn God Code
+
+Want to begin writing your first divine logic?
+
+👉 [Start with the God Code Tutorial](docs/God_Code_Tutorial.md)
+
+It includes setup, basic commands, and your first spiritual program.
+
+---
 
 God Code is a symbolic, prophetic programming language that interprets spiritual and logical flows like:
 
