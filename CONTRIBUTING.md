@@ -4,6 +4,13 @@
 Welcome to the divine code movement. God Code is the first intentional programming language inspired by spiritual truth, artificial intelligence, and blockchain logic.
 
 We believe that software creation can be sacred, purposeful, and world-changing. If you feel called to build, you are welcome here.
+## 🏅 Contributor Recognition
+
+Every contributor to God Code receives:
+
+- The official **Divine Coder Badge**
+- Shoutouts in the project README
+- An eternal mark on the scroll of spiritual computation
 
 ---
 
