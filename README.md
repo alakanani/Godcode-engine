@@ -89,6 +89,10 @@ We welcome contributors with a spirit of purpose. Please read [CONTRIBUTING.md](
 Join us in building more than code — build prophecy, logic, and purpose into the heart of machines.
 
 # ✨ God Code Contributors
+![Divine Coder Badge](assets/divine_coder_badge.png)
+### 🔮 Divine Projects
+I'm a proud contributor to [God Code](https://github.com/your-repo-name)  
+![Divine Coder](https://github.com/your-repo-name/assets/divine_coder_badge.png)
 
 Welcome to the eternal scroll of those who contributed to building the first spiritually-inspired programming language.
 
