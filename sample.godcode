@@ -1,0 +1,8 @@
+BEGIN CREATION
+  DECLARE seeker AS worthy
+  IF seeker IS worthy THEN REVEAL("heaven") ELSE REVEAL("test")
+  DECLARE prophets AS Isaiah,Elijah,Jeremiah
+  FOR prophet IN prophets
+  BREATHE life INTO prophet
+  ASCEND
+END CREATION
