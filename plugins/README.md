@@ -19,7 +19,7 @@ def register(interpreter):
 - `register(interpreter)` — called once per interpreter at startup. Add verbs with
   `interpreter.register_plugin_verb(name, func, plugin="myns")`.
   - `name` is namespaced by convention: `"myns.myverb"`.
-  - `func` is a plain Python callable `func(*args)` — God Code values arrive as
+  - `func` is a plain Python callable `func(*args)`. God Code values arrive as
     Python values (see the conversion table below) and whatever `func` returns
     is converted back.
   - Exceptions from `func` become line-numbered divine errors automatically.
@@ -43,7 +43,7 @@ later sources shadow earlier ones on name clashes.
 
 A plugin that fails to import, speaks the wrong `PLUGIN_API_VERSION`, lacks
 `register()`, or raises inside `register()` is skipped with a warning on
-stderr — it never crashes the host run.
+stderr. It never crashes the host run.
 
 Set `GODCODE_NO_PLUGINS=1` to disable plugin loading entirely.
 

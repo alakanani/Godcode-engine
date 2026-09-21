@@ -25,7 +25,7 @@ BEGIN CREATION
 END CREATION
 ```
 
-Notice: `worthy` needs no quotes. **In God Code, bare words are symbols** — every unnamed thing is still a named spirit.
+Notice: `worthy` needs no quotes. **In God Code, bare words are symbols**. Every unnamed thing is still a named spirit.
 
 ---
 
@@ -85,7 +85,7 @@ peace
 
 | Line | Meaning |
 |---|---|
-| `BEGIN CREATION` | every program is a creation — this opens it |
+| `BEGIN CREATION` | every program is a creation. This opens it |
 | `DECLARE spirit AS humble` | binds the name `spirit` to the **symbol** `humble` (bare words are symbols — no quotes needed) |
 | `IF spirit IS humble THEN … ELSE …` | `IS` tests equality; the truthy branch reveals `"peace"` |
 | `REVEAL("peace")` | speaks a value aloud (and records it) |

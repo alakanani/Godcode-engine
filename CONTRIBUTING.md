@@ -43,7 +43,7 @@ Every contributor to God Code receives:
    ```
 5. Submit a pull request with a meaningful description
 
-**Please do not commit** build artifacts, `logs/`, or `covenant.chain` — they are per-creation, not per-repo.
+**Please do not commit** build artifacts, `logs/`, or `covenant.chain`. They are per-creation, not per-repo.
 
 ---
 
@@ -51,7 +51,7 @@ Every contributor to God Code receives:
 
 - 🌱 See [ISSUES.md](./ISSUES.md) for the v2.1 roadmap: `ELSE IF` chains, string interpolation, dictionaries, `TRY`/`MERCY`, new scrolls, VS Code highlighting
 - 📜 Add a new scroll to `godcode/scrolls/` — written in God Code, tested, and documented in `docs/LANGUAGE_REFERENCE.md` §14
-- 💠 Add an example to `examples/` — every creation must be valid v2.0 and runnable via `godcode run`
+- 💠 Add an example to `examples/`. Every creation must be valid v2.0 and runnable via `godcode run`
 
 ---
 

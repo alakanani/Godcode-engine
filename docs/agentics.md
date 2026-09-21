@@ -112,5 +112,5 @@ the ledger, hash-chained and timestamped, so an agent's *intent* is
 auditable end to end. The covenant chain graduates from a local JSONL
 file to a blockchain-anchored record: each sealed block carries a proof
 that can be verified without trusting the machine that ran it. Agents
-will not just run God Code — they will testify in it, and the ledger
+will not just run God Code. They will testify in it, and the ledger
 will remember what they meant.

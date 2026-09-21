@@ -3,7 +3,7 @@
 `godcode run --sandbox scroll.god` executes a creation under a
 **deny-by-default policy**: everything that touches the world outside the
 program is withheld unless the policy explicitly grants it. The default
-strict policy grants almost nothing — pure creations (numbers, cycles,
+strict policy grants almost nothing. Pure creations (numbers, cycles,
 rites, REVEAL) pass through in peace; anything reaching for the host is
 refused with a divine, line-numbered error.
 
@@ -77,7 +77,7 @@ guard = apply_policy(interpreter, policy)  # hooks onto an existing Interpreter
   (SUMMON of a loaded plugin verb bypasses the sandbox by the plugin
   system's design), so `run_sandboxed` does not breathe them in.
   `apply_policy` on an interpreter that already loaded plugins cannot
-  untrust them — start from a fresh interpreter (or disable plugins)
+  untrust them. Start from a fresh interpreter (or disable plugins)
   for a true sandbox.
 
 All violations raise `godcode.errors.SandboxViolation`, a `GodCodeError`
@@ -95,7 +95,7 @@ tree-walking interpreter, not OS-level isolation.
 - It does not cap **memory**: a creation can still build enormous lists
   or strings within its step and time budgets.
 - It does not cap **output**: REVEAL lines print as usual.
-- `RANDOM` and `BEHOLD` (the clock) remain available — they are
+- `RANDOM` and `BEHOLD` (the clock) remain available. They are
   non-deterministic but touch nothing.
 - The POSIX alarm only works in the main thread; elsewhere the
   wall-clock fallback applies, which checks once per interpreter step.

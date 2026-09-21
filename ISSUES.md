@@ -1,6 +1,6 @@
 # God Code Contributor Tasks – GitHub Issues
 
-Welcome to the contributor space for God Code! The original v1 tasks are fulfilled in **v2.0** — what remains is the road ahead.
+Welcome to the contributor space for God Code! The original v1 tasks are fulfilled in **v2.0**. What remains is the road ahead.
 
 ---
 
@@ -65,4 +65,4 @@ Property-based tests over the lexer/parser (Hypothesis) — let randomness testi
 
 ---
 
-*Have another vision? Open an issue — prophecy favors the bold.*
+*Have another vision? Open an issue. Prophecy favors the bold.*

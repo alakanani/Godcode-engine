@@ -54,7 +54,7 @@ DECLARE the_hour AS SUMMON("clockwork.now")
 
 And for developers who want God Code *inside* their own Python programs, v3 opens the **embedding API**: `godcode.run_source()` and `godcode.run_file()` execute God Code and return the captured output — no subprocess, no ceremony.
 
-**In plain words:** God Code no longer lives only in its own temple. It can step outside — and Python can step in.
+**In plain words:** God Code no longer lives only in its own temple. It can step outside. And Python can step in.
 
 📖 Full detail: [`docs/plugins.md`](plugins.md)
 
@@ -97,7 +97,7 @@ godcode run --sandbox --json creation.god  # safe execution, machine-readable
 
 v3.0 doesn't change how God Code *feels* to write. Every v2 creation still runs. What changes is what creators can **do together**: publish scrolls for others, run strangers' code in safety, extend the engine with plugins, and write in editors that understand the language.
 
-The language is spoken. The engine is built. **Now the foundation is strong — and the building can begin.**
+The language is spoken. The engine is built. **Now the foundation is strong. And the building can begin.**
 
 ---
 

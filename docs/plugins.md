@@ -37,7 +37,7 @@ The contract:
      automatically; divine errors you raise yourself pass through untouched.
 
 A plugin that fails to import, lacks `register()`, or raises inside it is
-skipped with a warning on stderr — it never crashes the host run.
+skipped with a warning on stderr. It never crashes the host run.
 
 ### Value conversion
 
@@ -85,7 +85,7 @@ SUMMON("name.verb", arg1, arg2, ...)
 ```
 
 - The first argument is the verb's namespaced name as a string. Using a string
-  literal means no grammar change was needed — the parser never sees the dot.
+  literal means no grammar change was needed. The parser never sees the dot.
 - Remaining arguments are ordinary God Code expressions, converted to Python
   before the call; the result is converted back to a God Code value.
 - Calling an unknown verb is a divine, line-numbered error listing the verbs

@@ -22,7 +22,7 @@ BEGIN CREATION
 END CREATION
 ```
 
-**In God Code, bare words are symbols** — `worthy` needs no quotes, for every unnamed thing is still a named spirit.
+**In God Code, bare words are symbols**. `worthy` needs no quotes, for every unnamed thing is still a named spirit.
 
 ---
 
@@ -55,7 +55,7 @@ godcode repl                    # interactive — blank line executes, :quit asc
 
 ## 🌟 v3.0 — Strong Foundations
 
-Four pillars plus a mini-pillar, one promise: **creators can share, protect, extend, and write God Code in comfort — and now AI agents can speak it too.** Every v2 creation still runs.
+Four pillars plus a mini-pillar, one promise: **creators can share, protect, extend, and write God Code in comfort. And now AI agents can speak it too.** Every v2 creation still runs.
 
 | Pillar | What it is | In one breath |
 |---|---|---|
@@ -133,7 +133,7 @@ godcode-engine/
 
 ## 💻 Write God Code in VS Code
 
-The official extension lives in [`editors/vscode`](editors/vscode): full syntax highlighting for `.god` files, 14 snippets (`creation`, `if`, `for`, `rite`…), and **Run Current File** (`Ctrl+Alt+R`). Copy it to `~/.vscode/extensions/godcode-2.0.0` and reload — your creations light up like scripture.
+The official extension lives in [`editors/vscode`](editors/vscode): full syntax highlighting for `.god` files, 14 snippets (`creation`, `if`, `for`, `rite`…), and **Run Current File** (`Ctrl+Alt+R`). Copy it to `~/.vscode/extensions/godcode-2.0.0` and reload. Your creations light up like scripture.
 
 ---
 
@@ -151,4 +151,4 @@ We welcome contributors with a spirit of purpose. Read [CONTRIBUTING.md](./CONTR
 
 > "Built not alone — but in communion with the machine."
 
-Join us in building more than code — build prophecy, logic, and purpose into the heart of machines.
+Join us in building more than code. Build prophecy, logic, and purpose into the heart of machines.

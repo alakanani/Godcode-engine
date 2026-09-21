@@ -11,7 +11,7 @@ Registry turns scrolls into **installable, versioned packages**:
   not in the stdlib.
 
 Stdlib lookup keeps its precedence: if a name exists in `godcode/scrolls/`,
-that file wins — registry installs can never shadow the stdlib by accident.
+that file wins. Registry installs can never shadow the stdlib by accident.
 
 ## The manifest: `scroll.toml`
 

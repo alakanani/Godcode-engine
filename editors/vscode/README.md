@@ -25,7 +25,7 @@ pip install -e .
 
 **Option A — from source (today):**
 1. Copy the `editors/vscode` folder to `~/.vscode/extensions/godcode-2.0.0`
-2. Reload VS Code — `.god` files light up immediately
+2. Reload VS Code. `.god` files light up immediately
 
 **Option B — package it:**
 ```bash

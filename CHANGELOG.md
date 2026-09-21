@@ -19,10 +19,10 @@ All notable changes to the God Code engine are recorded here, that the generatio
 - **Docs & examples** — `docs/WHAT_IS_NEW_IN_V3.md` (the v3.0 story), new `SUMMON` / scroll / sandbox / LSP sections in `docs/LANGUAGE_REFERENCE.md`, updated tutorial index, and three new working creations: `examples/summon_demo.god`, `examples/sandbox_safe.god`, `examples/scroll_blessings_demo.god`
 
 ### Changed
-- `LANGUAGE_REFERENCE.md` now documents the v3.0 language; the v2 language is fully backward compatible — every v2 creation still runs.
+- `LANGUAGE_REFERENCE.md` now documents the v3.0 language; the v2 language is fully backward compatible. Every v2 creation still runs.
 
 ### Looking ahead
-- **v4.0 — Intent & Chain: the language agents speak.** The agentics mini-pillar made God Code legible to agents; v4.0 will make agents legible to God Code. Every agent action — a generated scroll, a fix applied from a diagnostic, an execution — becomes a sealed covenant on the ledger, hash-chained and timestamped, so an agent's *intent* is auditable end to end. The covenant chain graduates from a local JSONL file to a blockchain-anchored record: each sealed block carries a proof that can be verified without trusting the machine that ran it. Agents will not just run God Code — they will testify in it, and the ledger will remember what they meant.
+- **v4.0 — Intent & Chain: the language agents speak.** The agentics mini-pillar made God Code legible to agents; v4.0 will make agents legible to God Code. Every agent action — a generated scroll, a fix applied from a diagnostic, an execution — becomes a sealed covenant on the ledger, hash-chained and timestamped, so an agent's *intent* is auditable end to end. The covenant chain graduates from a local JSONL file to a blockchain-anchored record: each sealed block carries a proof that can be verified without trusting the machine that ran it. Agents will not just run God Code. They will testify in it, and the ledger will remember what they meant.
 
 ---
 

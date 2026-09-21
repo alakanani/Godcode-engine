@@ -6,7 +6,7 @@
 ---
 
 ### 🔍 What v2.0 Is
-A complete, real language engine (Python 3.10+, stdlib only): lexer → parser → AST → tree-walking interpreter, with `pip install -e .` shipping the `godcode` command (`run`, `check`, `repl`, `fmt`, `ledger verify`). Programs are **creations** (`BEGIN/END CREATION`); **bare words are symbols** — `IF seeker IS worthy` needs no quotes.
+A complete, real language engine (Python 3.10+, stdlib only): lexer → parser → AST → tree-walking interpreter, with `pip install -e .` shipping the `godcode` command (`run`, `check`, `repl`, `fmt`, `ledger verify`). Programs are **creations** (`BEGIN/END CREATION`); **bare words are symbols**. `IF seeker IS worthy` needs no quotes.
 
 ---
 

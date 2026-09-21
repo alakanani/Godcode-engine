@@ -13,7 +13,7 @@ For runnable programs, see [`../examples/`](../examples/).
 
 ## 1. The Shape of a Program
 
-Every God Code program is a **creation** — it opens with `BEGIN CREATION` and closes with `END CREATION`:
+Every God Code program is a **creation**. It opens with `BEGIN CREATION` and closes with `END CREATION`:
 
 ```godcode
 BEGIN CREATION
@@ -23,7 +23,7 @@ BEGIN CREATION
 END CREATION
 ```
 
-Statements live one per line (the inline `IF` form is the one exception — see §7).
+Statements live one per line (the inline `IF` form is the one exception. See §7).
 `ASCEND` ends the creation early and in peace; reaching `END CREATION` ends it naturally.
 
 ## 2. Words of the Language
@@ -49,7 +49,7 @@ Statements live one per line (the inline `IF` form is the one exception — see 
 
 ### The Symbol Rule 🕊
 
-**In God Code, every unnamed thing is still a named spirit — bare words are symbols.**
+**In God Code, every unnamed thing is still a named spirit. Bare words are symbols.**
 
 An identifier that is not bound to anything does not raise an error; it evaluates to a `Symbol` carrying its own name. This is what makes the founding idiom work:
 
@@ -79,7 +79,7 @@ Symbols are always truthy, and compare by their text: `worthy IS worthy` is true
 
 ## 4. Names and Scope
 
-- `DECLARE` **always defines in the current scope.** There is no rebinding of outer scopes — declaring a name that exists outside creates (or updates) it in the current scope instead.
+- `DECLARE` **always defines in the current scope.** There is no rebinding of outer scopes. Declaring a name that exists outside creates (or updates) it in the current scope instead.
 - A `FOR`/`WHILE` body runs in a **child scope** that lasts for the whole loop, so `DECLARE` inside a loop updates what the loop's condition sees on the next cycle.
 - A rite call runs in a **child scope of the rite's definition site** (a closure): rites remember where they were born.
 - `REFLECT` prints every name visible in the current scope (`name = value`, one per line).
@@ -87,7 +87,7 @@ Symbols are always truthy, and compare by their text: `worthy IS worthy` is true
 ## 5. The Statements
 
 ### `DECLARE name AS value`
-Binds a name. Multiple comma-separated values become a list — the original idiom is honored:
+Binds a name. Multiple comma-separated values become a list. The original idiom is honored:
 
 ```godcode
 DECLARE seeker AS worthy
@@ -121,7 +121,7 @@ PROPHESY a harvest of wisdom approaches
 PROPHESY
 ```
 
-> ⚠️ Words that collide with keywords are read as keywords (`is` becomes `IS` in the prophecy text) — choose your words with care.
+> ⚠️ Words that collide with keywords are read as keywords (`is` becomes `IS` in the prophecy text). Choose your words with care.
 
 ### `ASCEND`
 Ends the creation immediately and in peace: `🕊 Creation ascended in peace.`
@@ -244,7 +244,7 @@ ENDFOR
 
 The loop body runs in a child scope holding the loop variable. (`FOR` over anything else — a bare symbol, a number — is rejected.)
 
-> 📜 *Legacy form:* the v1 prototype wrote `FOR` without `ENDFOR`, letting the body run to `END CREATION`. The grammar still accepts it, so `sample.godcode` keeps working — but new creations should always close with `ENDFOR`.
+> 📜 *Legacy form:* the v1 prototype wrote `FOR` without `ENDFOR`, letting the body run to `END CREATION`. The grammar still accepts it, so `sample.godcode` keeps working. But new creations should always close with `ENDFOR`.
 
 **WHILE** cycles while its condition holds, closed with `ENDWHILE`:
 
@@ -272,7 +272,7 @@ DECLARE word AS BLESSING("seeker")     # expression form
 REVEAL(word)                           # grace upon seeker
 ```
 
-- Parameters bind in a child scope of the rite's **definition site** — rites are closures.
+- Parameters bind in a child scope of the rite's **definition site**. Rites are closures.
 - Calling with the wrong number of arguments is an error.
 - `RETURN` with no value returns `void`.
 
@@ -447,7 +447,7 @@ BEGIN CREATION
 END CREATION
 ```
 
-Run it: `godcode run examples/seven_seals.god` — `seal` appears at 7, 14, 21, 28, and `seal of seals` at 35.
+Run it: `godcode run examples/seven_seals.god`. `seal` appears at 7, 14, 21, 28, and `seal of seals` at 35.
 
 ### The Covenant Keeper (contracts + rites + sealing)
 
@@ -500,7 +500,7 @@ godcode scroll install blessings    # install into ~/.godcode/scrolls/ (or the p
 godcode scroll publish ./my_scroll  # share your own scroll from a directory
 ```
 
-Installed scrolls are reached with ordinary `IMPORT` — the import resolver checks installed scrolls after the built-in library (§12). See `examples/scroll_blessings_demo.god` and [`docs/scroll-registry.md`](scroll-registry.md).
+Installed scrolls are reached with ordinary `IMPORT`. The import resolver checks installed scrolls after the built-in library (§12). See `examples/scroll_blessings_demo.god` and [`docs/scroll-registry.md`](scroll-registry.md).
 
 ## 23. The Sandbox (v3.0)
 

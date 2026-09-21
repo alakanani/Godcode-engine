@@ -110,7 +110,7 @@ adopt `godcode lsp` as its language server:
    `textDocument/publishDiagnostics` instead of parsing CLI output.
 3. Surface hover docs and completions from the server, replacing the
    static snippet list where they overlap.
-4. Keep the TextMate grammar for syntax highlighting — the server does
+4. Keep the TextMate grammar for syntax highlighting. The server does
    not provide semantic tokens (yet).
 
 Until then, VS Code users can already point any generic LSP client
