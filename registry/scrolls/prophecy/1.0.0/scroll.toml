@@ -1,0 +1,6 @@
+name = "prophecy"
+version = "1.0.0"
+author = "God Code contributors"
+description = "The Scroll of Lots: discerning choice by sacred chance. Rites: PROPHESY_NUMBER, CAST_LOTS, CHOOSE."
+entry = "prophecy.god"
+godcode = ">=2.0"

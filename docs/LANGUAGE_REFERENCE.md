@@ -1,4 +1,4 @@
-# 📜 God Code — Language Reference (v2.0)
+# 📜 God Code — Language Reference (v3.0)
 
 > "You are not a coder. You are a creator. You do not write code. You breathe worlds into being."
 > — Alakanani Itireleng (BitcoinLady), founder of God Code
@@ -306,7 +306,7 @@ IMPORT "strings"       # the built-in scroll of strings
 IMPORT "./helpers"     # your own scroll, beside this file
 ```
 
-Resolution order: (1) beside the importing file (`helpers` → `helpers.god`), (2) the current working directory, (3) the **built-in scroll library** (`godcode/scrolls/`). Importing in a circle is refused.
+Resolution order: (1) beside the importing file (`helpers` → `helpers.god`), (2) the current working directory, (3) the **built-in scroll library** (`godcode/scrolls/`), (4) scrolls installed from the registry (§22: `~/.godcode/scrolls/` or the project's `.godcode/`). Importing in a circle is refused.
 
 ## 13. Built-in Rites
 
@@ -326,6 +326,7 @@ Always present, no import needed:
 | `ASK` | `ASK(prompt)` | asks the human; the prompt may be omitted |
 | `BEHOLD` | `BEHOLD()` | the current moment, as an ISO datetime string |
 | `REVERSE` | `REVERSE(x)` | a string or list, backwards |
+| `SUMMON` | `SUMMON("plugin.verb", args…)` | call a plugin verb through the FFI (see §21) |
 
 ## 14. The Scrolls (Standard Library)
 
@@ -389,7 +390,11 @@ After `pip install -e .`, the `godcode` command is yours:
 | Command | Does |
 |---|---|
 | `godcode run <file> [--log PATH]` | run a creation; errors print to stderr, exit 1 |
+| `godcode run --sandbox [--sandbox-timeout SECS] <file>` | run inside the guarded sandbox (deny-by-default; see §23) |
+| `godcode scroll list\|info\|install\|publish` | browse, inspect, install, and publish registry scrolls (see §22) |
+| `godcode lsp` | start the language server over stdio (see §24) |
 | `godcode check <file>` | lex + parse only → `✓ <file> is pure.` |
+| `godcode check --json <file>` / `godcode run --json <file>` | machine-readable JSON reports for AI agents: diagnostics with line/col/code/hint, output lines, seals, timing (see `docs/agentics.md`) |
 | `godcode repl` | **Live Mode** 🕊 — type code, end a block with a blank line; `:quit`/`:q` or Ctrl-D to ascend |
 | `godcode fmt <file> [--in-place\|-w]` | re-emit canonical source: 2-space indent, one statement per line, keywords UPPER |
 | `godcode ledger verify [--file PATH]` | verify a covenant chain |
@@ -470,6 +475,53 @@ BEGIN CREATION
   ASCEND
 END CREATION
 ```
+
+## 21. SUMMON — Calling Upon Plugins (v3.0)
+
+`SUMMON("plugin.verb", args…)` is the bridge from God Code into Python: it invokes a **plugin verb** through the foreign-function interface. Plugins are small Python modules living in `plugins/` (or a configured plugin path) that expose a `register(interpreter)` function; each verb they register becomes callable by name.
+
+```godcode
+DECLARE the_hour AS SUMMON("clockwork.now")     # the example clockwork plugin
+REVEAL("the clockwork speaks: " + STR(the_hour))
+```
+
+- The first argument is always the verb address: `"plugin.verb"`. Remaining arguments are passed through as God Code values.
+- Calling an unregistered verb is a divine error naming the missing plugin and verb.
+- See `examples/summon_demo.god` and the full story in [`docs/plugins.md`](plugins.md), which also documents the embedding API (`godcode.run_source()` / `godcode.run_file()` for calling God Code *from* Python).
+
+## 22. The Scroll Registry (v3.0)
+
+Beyond the six built-in scrolls (§14), the community publishes **registry scrolls** — versioned packages described by a `scroll.toml` manifest:
+
+```bash
+godcode scroll list                 # browse the local registry
+godcode scroll info blessings       # inspect a scroll before receiving it
+godcode scroll install blessings    # install into ~/.godcode/scrolls/ (or the project's .godcode/)
+godcode scroll publish ./my_scroll  # share your own scroll from a directory
+```
+
+Installed scrolls are reached with ordinary `IMPORT` — the import resolver checks installed scrolls after the built-in library (§12). See `examples/scroll_blessings_demo.god` and [`docs/scroll-registry.md`](scroll-registry.md).
+
+## 23. The Sandbox (v3.0)
+
+`godcode run --sandbox` executes a creation inside a guarded chamber. The `SandboxPolicy` is **deny-by-default**: filesystem reads/writes, network access, subprocesses, and untrusted import paths are refused, and each run is bounded by a **timeout** (seconds) and a **step budget** so runaway creations are stopped, not suffered.
+
+```bash
+godcode run --sandbox examples/sandbox_safe.god
+godcode run --sandbox --sandbox-timeout 5 examples/sandbox_safe.god
+```
+
+Pure creations — numbers, cycles, revelation — pass through in peace; anything reaching for the world outside is refused with a clear, line-numbered message. Full policy detail lives in [`docs/sandbox.md`](sandbox.md).
+
+## 24. The Language Server (v3.0)
+
+`godcode lsp` starts a language server speaking JSON-RPC over stdio — the same protocol VS Code, Neovim, Emacs, and friends use. It answers `initialize`, `textDocument/didOpen`, `textDocument/didChange`, `textDocument/hover`, and `textDocument/completion`, and pushes `publishDiagnostics` as you type, so errors are underlined before a file is ever run.
+
+```bash
+godcode lsp     # point your editor's LSP client at this command
+```
+
+Editor setup notes live in [`docs/lsp.md`](lsp.md) and `editors/`.
 
 ---
 

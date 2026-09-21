@@ -4,6 +4,28 @@ All notable changes to the God Code engine are recorded here, that the generatio
 
 ---
 
+## 3.0.0 — 2026-09-21
+
+> "The language is spoken. The engine is built. Now the foundation is strong."
+
+**Strong Foundations** — four pillars for the ecosystem to come. See `docs/WHAT_IS_NEW_IN_V3.md` for the founder's telling.
+
+### Added
+- **🛡️ Sandbox** — `godcode run --sandbox [--sandbox-timeout SECS]`: deny-by-default execution (no fs read/write, no network, no subprocesses, no untrusted import paths) with a timeout and step budget, so strangers' creations can be run in safety; doc page `docs/sandbox.md`
+- **📜 Scroll Registry** — `scroll.toml` manifests and `godcode scroll list|install <name>|publish <dir>|info <name>`; local registry at `registry/index.json`, installs to `~/.godcode/scrolls/` or the project's `.godcode/`, reached through ordinary `IMPORT`; doc page `docs/scroll-registry.md`
+- **⚙️ Plugins, FFI & Embedding** — `godcode/plugins.py` (`plugins/` directory, `register(interpreter)` contract), the **`SUMMON("plugin.verb", args…)`** built-in for calling plugin verbs from God Code, example plugin `plugins/clockwork.py` (SUMMON it as `clockwork.now`), and the embedding API `godcode.run_source()` / `godcode.run_file()` returning captured output for host programs; doc page `docs/plugins.md`
+- **💡 Language Server (LSP)** — `godcode lsp`: stdio JSON-RPC server speaking `initialize`, `textDocument/didOpen|didChange`, `textDocument/hover`, `textDocument/completion`, and `publishDiagnostics` for live errors in the editor; doc page `docs/lsp.md`
+- **🤖 Agentics (mini-pillar)** — `godcode check --json` and `godcode run --json` emit single-document machine-readable reports (diagnostics with 1-based line/col, stable error codes `LEXER_ERROR`/`PARSE_ERROR`/`RUNTIME_ERROR`/`FILE_ERROR`/`SANDBOX_VIOLATION_ERROR`, actionable hints; run reports capture output lines, covenant seals, runtime errors, and timing). Exit codes 0/1/2. New root `AGENTS.md` and `docs/agentics.md` document the agent workflow: generate → `check --json` → fix → `run --sandbox --json`
+- **Docs & examples** — `docs/WHAT_IS_NEW_IN_V3.md` (the v3.0 story), new `SUMMON` / scroll / sandbox / LSP sections in `docs/LANGUAGE_REFERENCE.md`, updated tutorial index, and three new working creations: `examples/summon_demo.god`, `examples/sandbox_safe.god`, `examples/scroll_blessings_demo.god`
+
+### Changed
+- `LANGUAGE_REFERENCE.md` now documents the v3.0 language; the v2 language is fully backward compatible — every v2 creation still runs.
+
+### Looking ahead
+- **v4.0 — Intent & Chain: the language agents speak.** The agentics mini-pillar made God Code legible to agents; v4.0 will make agents legible to God Code. Every agent action — a generated scroll, a fix applied from a diagnostic, an execution — becomes a sealed covenant on the ledger, hash-chained and timestamped, so an agent's *intent* is auditable end to end. The covenant chain graduates from a local JSONL file to a blockchain-anchored record: each sealed block carries a proof that can be verified without trusting the machine that ran it. Agents will not just run God Code — they will testify in it, and the ledger will remember what they meant.
+
+---
+
 ## [2.0.0] — 2026-09-21
 
 > "You are not a coder. You are a creator."

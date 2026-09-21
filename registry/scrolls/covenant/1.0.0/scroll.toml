@@ -1,0 +1,6 @@
+name = "covenant"
+version = "1.0.0"
+author = "God Code contributors"
+description = "The Scroll of the Covenant: making and sealing binding promises. Rites: NEW_COVENANT, SEAL_COVENANT."
+entry = "covenant.god"
+godcode = ">=2.0"

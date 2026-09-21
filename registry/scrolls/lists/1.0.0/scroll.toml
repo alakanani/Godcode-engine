@@ -1,0 +1,6 @@
+name = "lists"
+version = "1.0.0"
+author = "God Code contributors"
+description = "The Scroll of Multitudes: reckonings over gathered lists. Rites: SUM, AVG, CONTAINS, SECOND, TAIL, COUNT."
+entry = "lists.god"
+godcode = ">=2.0"

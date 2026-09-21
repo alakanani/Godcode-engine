@@ -14,20 +14,15 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 # run
 # ---------------------------------------------------------------------------
-def cmd_run(args: argparse.Namespace) -> int:
-    from godcode.errors import GodCodeError
+# --- v3: agentics --json ---
+def _make_interpreter(log_path):
+    """Build an Interpreter the way `godcode run` always has, shared by the
+    plain and --json run paths so they can never drift apart."""
     from godcode.interpreter import Interpreter
 
-    try:
-        source = Path(args.file).read_text(encoding="utf-8")
-    except OSError as exc:
-        print(f"godcode: cannot read '{args.file}': {exc.strerror or exc}",
-              file=sys.stderr)
-        return 1
-
     kwargs: dict = {}
-    if args.log:
-        kwargs["log_path"] = args.log
+    if log_path:
+        kwargs["log_path"] = log_path
     # Bind the Spirit and the covenant ledger by default; degrade
     # gracefully if either cannot be raised in this environment.
     try:
@@ -40,12 +35,96 @@ def cmd_run(args: argparse.Namespace) -> int:
         kwargs["ledger"] = CovenantLedger()
     except Exception:
         pass
+    return Interpreter(**kwargs)
+# --- end v3: agentics --json ---
+
+
+def cmd_run(args: argparse.Namespace) -> int:
+    from godcode.errors import GodCodeError
+
+    # --- v3: sandbox commands ---
+    if getattr(args, "sandbox", False):
+        return _cmd_run_sandboxed(args)
+    # --- end v3: sandbox commands ---
+
+    # --- v3: agentics --json ---
+    if getattr(args, "json", False):
+        from godcode import agentics
+        return agentics.cmd_run_json(args)
+    # --- end v3: agentics --json ---
+
     try:
-        Interpreter(**kwargs).run_source(source, source_name=args.file)
+        source = Path(args.file).read_text(encoding="utf-8")
+    except OSError as exc:
+        print(f"godcode: cannot read '{args.file}': {exc.strerror or exc}",
+              file=sys.stderr)
+        return 1
+
+    try:
+        _make_interpreter(args.log).run_source(source, source_name=args.file)
     except GodCodeError as err:
         print(str(err), file=sys.stderr)
         return 1
     return 0
+
+
+# --- v3: sandbox commands ---
+def _cmd_run_sandboxed(args: argparse.Namespace) -> int:
+    """Run a scroll under the strict sandbox policy.
+
+    Spirit, covenant ledger, and the audit log stay unbound: they write
+    to the host world, which the sandbox does not permit. The CLI itself
+    reads the scroll file before the sandbox is entered — that read is
+    the invoker's own act, not the creation's.
+    """
+    from godcode.errors import GodCodeError
+    from godcode.sandbox import SandboxPolicy, run_sandboxed
+
+    try:
+        source = Path(args.file).read_text(encoding="utf-8")
+    except OSError as exc:
+        if getattr(args, "json", False):
+            from godcode import agentics
+            agentics.emit(agentics.run_payload(
+                args.file, False, [], [],
+                agentics._file_error_diagnostic(args.file, exc), 0))
+        else:
+            print(f"godcode: cannot read '{args.file}': {exc.strerror or exc}",
+                  file=sys.stderr)
+        return 1
+
+    source_dir = str(Path(args.file).resolve().parent)
+    policy = SandboxPolicy.strict(
+        source_dir=source_dir,
+        timeout_seconds=args.sandbox_timeout,
+    )
+    if getattr(args, "json", False):
+        # Machine-readable report; stdout carries exactly one JSON document.
+        import contextlib
+        import io
+        import time as _time
+
+        from godcode import agentics
+
+        error = None
+        output: list[str] = []
+        start = _time.perf_counter()
+        with contextlib.redirect_stdout(io.StringIO()):
+            try:
+                output = run_sandboxed(source, policy, source_name=args.file)
+            except GodCodeError as err:
+                error = agentics.diagnostic(err)
+        ms = int((_time.perf_counter() - start) * 1000)
+        agentics.emit(agentics.run_payload(
+            args.file, error is None, output, [], error, ms))
+        return 0 if error is None else 1
+    try:
+        run_sandboxed(source, policy, source_name=args.file)
+    except GodCodeError as err:
+        print(str(err), file=sys.stderr)
+        return 1
+    return 0
+# --- end v3: sandbox commands ---
 
 
 # ---------------------------------------------------------------------------
@@ -55,6 +134,12 @@ def cmd_check(args: argparse.Namespace) -> int:
     from godcode.errors import GodCodeError
     from godcode.lexer import Lexer
     from godcode.parser import Parser
+
+    # --- v3: agentics --json ---
+    if getattr(args, "json", False):
+        from godcode import agentics
+        return agentics.cmd_check_json(args)
+    # --- end v3: agentics --json ---
 
     try:
         source = Path(args.file).read_text(encoding="utf-8")
@@ -323,6 +408,131 @@ def cmd_ledger_verify(args: argparse.Namespace) -> int:
     return 0 if ok else 1
 
 
+# --- v3: scroll commands ---
+# Pillar 2 — Scroll Registry: publish/install/info/list installable scrolls.
+
+
+def _scroll_registry():
+    from godcode.registry import ScrollRegistry
+
+    return ScrollRegistry()
+
+
+def cmd_scroll_list(args: argparse.Namespace) -> int:  # noqa: ARG001
+    from godcode.registry import ScrollError
+
+    try:
+        rows = _scroll_registry().list_installed()
+    except ScrollError as exc:
+        print(f"godcode: {exc}", file=sys.stderr)
+        return 1
+    if not rows:
+        print("No scrolls installed. "
+              "Publish one with `godcode scroll publish <dir>`, "
+              "then `godcode scroll install <name>`.")
+        return 0
+    for row in rows:
+        loc = ",".join(row["locations"])
+        vers = ", ".join(row["versions"])
+        print(f"{row['name']} {vers} [{loc}]")
+    return 0
+
+
+def cmd_scroll_install(args: argparse.Namespace) -> int:
+    from godcode.registry import ScrollError
+
+    try:
+        receipt = _scroll_registry().install(
+            args.name, version=args.version, project=args.project)
+    except ScrollError as exc:
+        print(f"godcode: {exc}", file=sys.stderr)
+        return 1
+    where = "project-local" if args.project else "user-global"
+    print(f"Installed {receipt['name']} {receipt['version']} "
+          f"({where}: {receipt['manifest']['description'][:60]}...)")
+    return 0
+
+
+def cmd_scroll_publish(args: argparse.Namespace) -> int:
+    from godcode.registry import ScrollError
+
+    try:
+        manifest = _scroll_registry().publish(args.dir)
+    except ScrollError as exc:
+        print(f"godcode: {exc}", file=sys.stderr)
+        return 1
+    print(f"Published {manifest['name']} {manifest['version']} "
+          f"to the local registry.")
+    return 0
+
+
+def cmd_scroll_info(args: argparse.Namespace) -> int:
+    from godcode.registry import ScrollError
+
+    try:
+        info = _scroll_registry().info(args.name)
+    except ScrollError as exc:
+        print(f"godcode: {exc}", file=sys.stderr)
+        return 1
+    print(f"name:        {info['name']}")
+    if info["manifest"]:
+        manifest = info["manifest"]
+        print(f"version:     {info['latest']} (latest published)")
+        print(f"author:      {manifest['author']}")
+        print(f"entry:       {manifest['entry']}")
+        print(f"godcode:     {manifest['godcode']}")
+        print(f"description: {manifest['description']}")
+    else:
+        print("published:   (not in the local registry)")
+    if info["published"]:
+        print(f"published:   {', '.join(info['published'])}")
+    if info["installed"]:
+        print(f"installed:   {', '.join(info['installed'])} "
+              f"(project: {', '.join(info['installed_project']) or '--'}; "
+              f"user: {', '.join(info['installed_user']) or '--'})")
+    else:
+        print(f"installed:   (nowhere -- `godcode scroll install "
+              f"{info['name']}` to receive it)")
+    return 0
+
+
+def _add_scroll_commands(sub) -> None:
+    p_scroll = sub.add_parser("scroll", help="Scroll Registry commands")
+    scroll_sub = p_scroll.add_subparsers(dest="scroll_command", required=True)
+
+    p_list = scroll_sub.add_parser("list", help="List installed scrolls")
+    p_list.set_defaults(func=cmd_scroll_list)
+
+    p_install = scroll_sub.add_parser("install",
+                                      help="Install a scroll from the registry")
+    p_install.add_argument("name", help="Scroll name, e.g. json-tools")
+    p_install.add_argument("--version", default=None, metavar="X.Y.Z",
+                           help="Exact version (default: latest published)")
+    p_install.add_argument("--project", action="store_true",
+                           help="Install project-local (.godcode/scrolls/) "
+                                "instead of user-global (~/.godcode/scrolls/)")
+    p_install.set_defaults(func=cmd_scroll_install)
+
+    p_publish = scroll_sub.add_parser("publish",
+                                      help="Publish a scroll dir to the registry")
+    p_publish.add_argument("dir", help="Directory holding scroll.toml")
+    p_publish.set_defaults(func=cmd_scroll_publish)
+
+    p_info = scroll_sub.add_parser("info",
+                                   help="Show a scroll's manifest and state")
+    p_info.add_argument("name", help="Scroll name")
+    p_info.set_defaults(func=cmd_scroll_info)
+
+
+# --- end v3: scroll commands ---
+
+# --- v3: lsp commands ---
+def cmd_lsp(args: argparse.Namespace) -> int:  # noqa: ARG001
+    from godcode.lsp import serve
+
+    return serve()
+# --- end v3: lsp commands ---
+
 # ---------------------------------------------------------------------------
 # parser assembly
 # ---------------------------------------------------------------------------
@@ -336,11 +546,31 @@ def build_parser() -> argparse.ArgumentParser:
     p_run.add_argument("file", help="Path to the .god scroll")
     p_run.add_argument("--log", default=None, metavar="PATH",
                        help="Audit log path (default: logs/godcode.log)")
+    # --- v3: sandbox commands ---
+    p_run.add_argument("--sandbox", action="store_true",
+                       help="Run under the strict sandbox policy "
+                            "(deny fs writes, network, subprocesses, "
+                            "stdin; scroll imports limited to the "
+                            "scroll's own directory and the stdlib "
+                            "scrolls; time and step budgets enforced)")
+    p_run.add_argument("--sandbox-timeout", type=float, default=5.0,
+                       metavar="SECS",
+                       help="Wall-clock grant for --sandbox runs "
+                            "(default: 5.0 seconds)")
+    # --- end v3: sandbox commands ---
+    # --- v3: agentics --json ---
+    p_run.add_argument("--json", action="store_true",
+                       help="Emit a machine-readable JSON report on stdout")
+    # --- end v3: agentics --json ---
     p_run.set_defaults(func=cmd_run)
 
     p_check = sub.add_parser("check",
                              help="Lex and parse a scroll without running it")
     p_check.add_argument("file", help="Path to the .god scroll")
+    # --- v3: agentics --json ---
+    p_check.add_argument("--json", action="store_true",
+                         help="Emit a machine-readable JSON report on stdout")
+    # --- end v3: agentics --json ---
     p_check.set_defaults(func=cmd_check)
 
     p_repl = sub.add_parser("repl", help="Enter the live sanctuary")
@@ -360,6 +590,16 @@ def build_parser() -> argparse.ArgumentParser:
     p_verify.add_argument("--file", default="covenant.chain", metavar="PATH",
                           help="Chain file (default: covenant.chain)")
     p_verify.set_defaults(func=cmd_ledger_verify)
+
+    # --- v3: scroll commands ---
+    _add_scroll_commands(sub)
+    # --- end v3: scroll commands ---
+
+    # --- v3: lsp commands ---
+    p_lsp = sub.add_parser("lsp",
+                           help="Start the language server over stdio")
+    p_lsp.set_defaults(func=cmd_lsp)
+    # --- end v3: lsp commands ---
 
     return parser
 

@@ -1,0 +1,6 @@
+name = "blessings"
+version = "1.0.0"
+author = "God Code community"
+description = "A content pack of blessings and proverbs. The BLESSINGS list plus REVEAL_BLESSING, BLESSING_COUNT, BLESS_AT."
+entry = "blessings.god"
+godcode = ">=2.0"

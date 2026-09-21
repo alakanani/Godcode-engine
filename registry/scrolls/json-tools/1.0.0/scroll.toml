@@ -1,0 +1,6 @@
+name = "json-tools"
+version = "1.0.0"
+author = "God Code community"
+description = "JSON helpers written in pure God Code. Rites: JSON_ENCODE, JSON_DECODE, JSON_ESCAPE. Objects decode into [key, value] pair lists."
+entry = "json-tools.god"
+godcode = ">=2.0"

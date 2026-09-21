@@ -8,6 +8,7 @@ a 100,000-iteration guard on WHILE, and line-numbered errors.
 
 from __future__ import annotations
 
+import os
 import random
 from datetime import datetime, timezone
 from pathlib import Path
@@ -44,6 +45,7 @@ from godcode.environment import Environment
 from godcode.errors import AscendSignal, GodCodeError, GodRuntimeError, ReturnSignal
 from godcode.lexer import Lexer
 from godcode.parser import Parser
+from godcode import plugins
 from godcode.values import Contract, RiteFunction, Symbol
 
 _WHILE_ITERATION_CAP = 100_000
@@ -64,12 +66,17 @@ class Interpreter:
         self.log_path = log_path
         self.interactive = interactive
         self.output: list[str] = []  # every REVEAL line, in order
+        self.emit: Callable[[str], None] = print  # REVEAL output sink; override to capture
+        self.last_value: Any = None  # value of the last expression statement (embedding API)
         self.env = Environment()  # root environment
         self.source_dir = Path.cwd()  # for IMPORT resolution
         self._imported: set[str] = set()  # resolved scroll paths already run
         self._import_stack: list[str] = []  # scrolls currently being run
         self._last_source: str = ""
         self._log_handle: Any = None
+        self._plugin_verbs: dict[str, Callable[..., Any]] = {}  # namespaced verbs from plugins
+        self._plugin_verb_info: dict[str, dict] = {}  # name -> {"plugin", "trusted", "func"}
+        self.loaded_plugins: list[str] = []  # plugin names whose register() ran cleanly
         self._builtins: dict[str, Callable[..., Any]] = {
             "LEN": self._builtin_len,
             "STR": self._builtin_str,
@@ -85,7 +92,45 @@ class Interpreter:
             "ASK": self._builtin_ask,
             "BEHOLD": self._builtin_behold,
             "REVERSE": self._builtin_reverse,
+            "SUMMON": self._builtin_summon,
         }
+        # Pillar 3 — plugins auto-load at startup (the same path `godcode run`
+        # and the REPL take).  GODCODE_NO_PLUGINS=1 disables this.
+        if os.environ.get(plugins.DISABLE_ENV_VAR) != "1":
+            self.loaded_plugins = plugins.load_plugins(self)
+
+    # ------------------------------------------------- plugin verb registry
+
+    def register_plugin_verb(
+        self,
+        name: str,
+        func: Callable[..., Any],
+        *,
+        plugin: str | None = None,
+    ) -> str:
+        """Register a plugin verb callable from God Code via SUMMON.
+
+        *name* is namespaced by convention (``"clockwork.now"``); *func* is a
+        plain Python callable ``func(*args)`` — values are converted
+        God Code <-> Python automatically (see godcode.plugins).  The verb is
+        marked ``trusted=True``: plugin code is trusted host code and SUMMON
+        calls bypass sandbox policy by design; the marker lets a future
+        sandbox pillar consult it.
+        """
+        if not isinstance(name, str) or not name:
+            raise ValueError("a plugin verb needs a non-empty string name")
+        if not callable(func):
+            raise ValueError(f"plugin verb '{name}' is not callable")
+        adapter = plugins.make_verb_adapter(name, func)
+        self._builtins[name] = adapter  # exact key — namespaced names keep their case
+        self._plugin_verbs[name] = adapter
+        self._plugin_verb_info[name] = {"plugin": plugin, "trusted": True, "func": func}
+        return name
+
+    @property
+    def plugin_verb_info(self) -> dict[str, dict]:
+        """Read-only view of plugin verb metadata (name -> plugin/trusted/func)."""
+        return dict(self._plugin_verb_info)
 
     # ------------------------------------------------------------------ run
 
@@ -160,7 +205,7 @@ class Interpreter:
             self._exec_breathe(stmt, env)
         elif isinstance(stmt, Reveal):
             line = self.stringify(self._eval_expr(stmt.expr, env))
-            print(line)
+            self.emit(line)
             self.output.append(line)
         elif isinstance(stmt, Prophesy):
             self._exec_prophesy(stmt)
@@ -190,7 +235,8 @@ class Interpreter:
         elif isinstance(stmt, Import):
             self._exec_import(stmt, env)
         elif isinstance(stmt, ExprStmt):
-            self._eval_expr(stmt.expr, env)
+            # The value is kept for the embedding API (RunResult.return_value).
+            self.last_value = self._eval_expr(stmt.expr, env)
         else:
             raise GodRuntimeError(
                 f"The heavens do not recognize this utterance: {type(stmt).__name__}.",
@@ -365,11 +411,33 @@ class Interpreter:
                     return candidate.resolve()
             except OSError:
                 continue
+        # --- v3: scroll registry --- installed registry scrolls
+        # (project-local .godcode/scrolls, then user-global ~/.godcode/scrolls)
+        # resolve bare names via their manifest entry file. Stdlib keeps its
+        # precedence above, so stdlib behavior is unchanged.
+        installed = self._resolve_installed_scroll(import_path)
+        if installed is not None:
+            return installed
+        # --- end v3: scroll registry ---
         raise GodRuntimeError(
             f"The scroll '{import_path}' could not be found — not beside the "
             "creation, not in this place, not among the scrolls.",
             line,
         )
+
+    def _resolve_installed_scroll(self, import_path: str) -> Path | None:
+        """Resolve a bare scroll name against installed registry scrolls."""
+        if "/" in import_path or "\\" in import_path:
+            return None  # only bare names; never paths
+        name = import_path[:-4] if import_path.endswith(".god") else import_path
+        try:
+            from godcode.registry import ScrollRegistry
+        except ImportError:
+            return None
+        try:
+            return ScrollRegistry().resolve_entry(name)
+        except Exception:
+            return None
 
     # ------------------------------------------------------------- expressions
 
@@ -568,7 +636,11 @@ class Interpreter:
         target = env.get(name) if env.is_bound(name) else None
         if isinstance(target, RiteFunction):
             return self._call_rite(target, args, line)
-        builtin = self._builtins.get(name.upper())
+        # Exact match first so namespaced plugin verbs ("clockwork.now") keep
+        # their case; core verbs still resolve case-insensitively via UPPER.
+        builtin = self._builtins.get(name)
+        if builtin is None:
+            builtin = self._builtins.get(name.upper())
         if builtin is not None:
             return builtin(args, line)
         if target is not None:
@@ -747,6 +819,32 @@ class Interpreter:
             f"REVERSE can only turn back words and lists, not {self.type_name(value)}.",
             line,
         )
+
+    def _builtin_summon(self, args, line):
+        # Pillar 3 FFI: SUMMON("plugin.verb", arg1, ...) calls a
+        # plugin-registered verb with converted arguments.  The name is a
+        # string literal so no grammar change was needed; namespaced names
+        # ("clockwork.now") keep plugin verbs from colliding with core rites.
+        if not args:
+            raise GodRuntimeError(
+                'SUMMON needs a verb to call upon — SUMMON("name.verb", ...).',
+                line,
+            )
+        target = args[0]
+        if not isinstance(target, str):
+            raise GodRuntimeError(
+                "SUMMON needs the verb's name as a word, "
+                f"not {self.type_name(target)}.",
+                line,
+            )
+        verb = self._plugin_verbs.get(target)
+        if verb is None:
+            known = ", ".join(sorted(self._plugin_verbs)) or "none are present"
+            raise GodRuntimeError(
+                f"SUMMON knows no verb '{target}' — the summoned are: {known}.",
+                line,
+            )
+        return verb(args[1:], line)
 
     # ------------------------------------------------------- display & typing
 

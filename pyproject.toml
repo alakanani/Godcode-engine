@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "godcode-engine"
-version = "2.0.0"
+version = "3.0.0"
 description = "God Code — the language of divine computation"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -17,4 +17,4 @@ godcode = "godcode.cli:main"
 include = ["godcode*"]
 
 [tool.setuptools.package-data]
-godcode = ["scrolls/*.god"]
+godcode = ["scrolls/*.god", "scrolls/*.toml"]

@@ -1,0 +1,6 @@
+name = "time"
+version = "1.0.0"
+author = "God Code contributors"
+description = "The Scroll of Appointed Times: beholding the hour and the day. Rites: NOW, TODAY."
+entry = "time.god"
+godcode = ">=2.0"

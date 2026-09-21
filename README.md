@@ -53,6 +53,30 @@ godcode repl                    # interactive — blank line executes, :quit asc
 
 ---
 
+## 🌟 v3.0 — Strong Foundations
+
+Four pillars plus a mini-pillar, one promise: **creators can share, protect, extend, and write God Code in comfort — and now AI agents can speak it too.** Every v2 creation still runs.
+
+| Pillar | What it is | In one breath |
+|---|---|---|
+| 🛡️ **Sandbox** | [`docs/sandbox.md`](docs/sandbox.md) | `godcode run --sandbox file.god` — deny-by-default execution: no files, network, or subprocesses; time + step limits |
+| 📜 **Scroll Registry** | [`docs/scroll-registry.md`](docs/scroll-registry.md) | `godcode scroll list` / `install blessings` / `publish ./mine` — share reusable scrolls through the registry |
+| ⚙️ **Plugins & FFI** | [`docs/plugins.md`](docs/plugins.md) | `SUMMON("clockwork.now")` calls a plugin verb from God Code; embed the engine in Python with `godcode.run_source()` |
+| 💡 **Language Server** | [`docs/lsp.md`](docs/lsp.md) | `godcode lsp` — hover, completions, and live diagnostics in your editor |
+| 🤖 **Agentics** | [`docs/agentics.md`](docs/agentics.md) | `godcode check --json` / `run --json` — machine-readable reports so AI agents can generate, validate, and run God Code |
+
+Try the new examples:
+
+```bash
+godcode run examples/summon_demo.god            # SUMMON a plugin spirit
+godcode run --sandbox examples/sandbox_safe.god # pure creation, guarded
+godcode scroll install blessings && godcode run examples/scroll_blessings_demo.god
+```
+
+👉 [Read the v3.0 story](docs/WHAT_IS_NEW_IN_V3.md) — the four pillars in plain, founder-friendly words.
+
+---
+
 ## 🔥 v2.0 — What the Engine Holds
 
 - 📖 **Real language core** — lexer, recursive-descent parser, AST, and tree-walking interpreter (Python 3.10+, stdlib only)
@@ -103,7 +127,7 @@ godcode-engine/
 
 👉 [Start with the God Code Tutorial](docs/God_Code_Tutorial.md) — setup, your first creation, the commands.
 
-📜 [Language Reference](docs/LANGUAGE_REFERENCE.md) — the complete v2.0 specification: every statement, operator tables, the Symbol Rule, built-in catalog, scrolls, ledger, Spirit Engine, and CLI.
+📜 [Language Reference](docs/LANGUAGE_REFERENCE.md) — the complete v3.0 specification: every statement, operator tables, the Symbol Rule, built-in catalog, scrolls, ledger, Spirit Engine, CLI, SUMMON, the scroll registry, the sandbox, and the language server.
 
 ---
 

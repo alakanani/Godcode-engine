@@ -1,0 +1,122 @@
+{
+  "blessings": {
+    "latest": "1.0.0",
+    "manifest": {
+      "author": "God Code community",
+      "description": "A content pack of blessings and proverbs. The BLESSINGS list plus REVEAL_BLESSING, BLESSING_COUNT, BLESS_AT.",
+      "entry": "blessings.god",
+      "godcode": ">=2.0",
+      "name": "blessings",
+      "version": "1.0.0"
+    },
+    "name": "blessings",
+    "versions": [
+      "1.0.0"
+    ]
+  },
+  "covenant": {
+    "latest": "1.0.0",
+    "manifest": {
+      "author": "God Code contributors",
+      "description": "The Scroll of the Covenant: making and sealing binding promises. Rites: NEW_COVENANT, SEAL_COVENANT.",
+      "entry": "covenant.god",
+      "godcode": ">=2.0",
+      "name": "covenant",
+      "version": "1.0.0"
+    },
+    "name": "covenant",
+    "versions": [
+      "1.0.0"
+    ]
+  },
+  "json-tools": {
+    "latest": "1.0.0",
+    "manifest": {
+      "author": "God Code community",
+      "description": "JSON helpers written in pure God Code. Rites: JSON_ENCODE, JSON_DECODE, JSON_ESCAPE. Objects decode into [key, value] pair lists.",
+      "entry": "json-tools.god",
+      "godcode": ">=2.0",
+      "name": "json-tools",
+      "version": "1.0.0"
+    },
+    "name": "json-tools",
+    "versions": [
+      "1.0.0"
+    ]
+  },
+  "lists": {
+    "latest": "1.0.0",
+    "manifest": {
+      "author": "God Code contributors",
+      "description": "The Scroll of Multitudes: reckonings over gathered lists. Rites: SUM, AVG, CONTAINS, SECOND, TAIL, COUNT.",
+      "entry": "lists.god",
+      "godcode": ">=2.0",
+      "name": "lists",
+      "version": "1.0.0"
+    },
+    "name": "lists",
+    "versions": [
+      "1.0.0"
+    ]
+  },
+  "math": {
+    "latest": "1.0.0",
+    "manifest": {
+      "author": "God Code contributors",
+      "description": "The Scroll of Numbers: divine arithmetic. Rites: SQRT, POW, ABS, MIN, MAX, FACTORIAL, IS_EVEN.",
+      "entry": "math.god",
+      "godcode": ">=2.0",
+      "name": "math",
+      "version": "1.0.0"
+    },
+    "name": "math",
+    "versions": [
+      "1.0.0"
+    ]
+  },
+  "prophecy": {
+    "latest": "1.0.0",
+    "manifest": {
+      "author": "God Code contributors",
+      "description": "The Scroll of Lots: discerning choice by sacred chance. Rites: PROPHESY_NUMBER, CAST_LOTS, CHOOSE.",
+      "entry": "prophecy.god",
+      "godcode": ">=2.0",
+      "name": "prophecy",
+      "version": "1.0.0"
+    },
+    "name": "prophecy",
+    "versions": [
+      "1.0.0"
+    ]
+  },
+  "strings": {
+    "latest": "1.0.0",
+    "manifest": {
+      "author": "God Code contributors",
+      "description": "The Scroll of Tongues: words shaped, lifted up, and proclaimed. Rites: SHOUT, WHISPER, WORDS, CHARS, FIRST, LAST.",
+      "entry": "strings.god",
+      "godcode": ">=2.0",
+      "name": "strings",
+      "version": "1.0.0"
+    },
+    "name": "strings",
+    "versions": [
+      "1.0.0"
+    ]
+  },
+  "time": {
+    "latest": "1.0.0",
+    "manifest": {
+      "author": "God Code contributors",
+      "description": "The Scroll of Appointed Times: beholding the hour and the day. Rites: NOW, TODAY.",
+      "entry": "time.god",
+      "godcode": ">=2.0",
+      "name": "time",
+      "version": "1.0.0"
+    },
+    "name": "time",
+    "versions": [
+      "1.0.0"
+    ]
+  }
+}

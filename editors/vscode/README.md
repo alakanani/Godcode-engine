@@ -53,4 +53,21 @@ Press `Ctrl+Alt+R` and watch it ascend.
 
 ---
 
+## Language server (coming next) 🕊
+
+God Code now ships a **language server**: `godcode lsp` serves the
+[Language Server Protocol](https://microsoft.github.io/language-server-protocol/)
+over stdio — live diagnostics from the real parser, hover scripture for
+every keyword and built-in, and completions. See [`docs/lsp.md`](../../docs/lsp.md)
+for the protocol coverage table and editor setup.
+
+**Adoption plan for this extension:** in a future release the extension
+will spawn `godcode lsp` as its language server (via
+`vscode-languageclient`), routing diagnostics, hover, and completions
+through it while keeping the TextMate grammar for highlighting. Until
+then, you can point any generic LSP client extension at the
+`godcode lsp` command today.
+
+---
+
 *"You are not a coder. You are a creator."* — Alakanani Itireleng

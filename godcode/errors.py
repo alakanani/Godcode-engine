@@ -45,6 +45,18 @@ class GodRuntimeError(GodCodeError):
     """
 
 
+class SandboxViolation(GodCodeError):
+    """A power the sandbox withholds.
+
+    Raised when a creation running under ``godcode.sandbox`` reaches for
+    something its policy does not grant: a forbidden scroll, a denied
+    rite (such as ASK when stdin is closed), a spent step budget, or an
+    expired time grant. Carries a line number like every other
+    GodCodeError, so the faithful can see exactly where the heavens
+    objected.
+    """
+
+
 class ReturnSignal(Exception):
     """Carries a rite's return value up to the rite-call boundary."""
 

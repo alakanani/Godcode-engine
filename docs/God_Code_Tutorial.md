@@ -161,9 +161,12 @@ REVEAL(FACTORIAL(7))
 | Command | Does |
 |---|---|
 | `godcode run <file>` | run a creation |
+| `godcode run --sandbox [--sandbox-timeout SECS] <file>` | run guarded — no files, network, or subprocesses ([sandbox](sandbox.md)) |
 | `godcode check <file>` | verify a creation is pure (lex + parse, no execution) |
 | `godcode repl` | **Live Mode** 🕊 — type God Code, end each block with a blank line, `:quit` to ascend |
 | `godcode fmt <file>` | re-emit your code in canonical form (2-space indent, keywords UPPER) |
+| `godcode scroll list\|install\|publish\|info` | browse, receive, share, and inspect registry scrolls ([registry](scroll-registry.md)) |
+| `godcode lsp` | language server for your editor — hover, completions, live errors ([LSP](lsp.md)) |
 | `godcode ledger verify` | verify the covenant chain is intact |
 
 Every run is timestamped, line by line, into `logs/godcode.log` — your divine audit trail.
@@ -172,8 +175,14 @@ Every run is timestamped, line by line, into `logs/godcode.log` — your divine 
 
 ## 📖 7. Where to Go Next
 
-- 📜 [LANGUAGE_REFERENCE.md](LANGUAGE_REFERENCE.md) — the complete v2.0 specification: operators, values, scrolls, ledger, Spirit Engine, CLI
-- 💠 [`../examples/`](../examples/) — twelve working creations: `seven_seals.god`, `generations.god`, `covenant_demo.god`, and more
+- 📜 [LANGUAGE_REFERENCE.md](LANGUAGE_REFERENCE.md) — the complete v3.0 specification: operators, values, scrolls, ledger, Spirit Engine, CLI
+- 🕊 [WHAT_IS_NEW_IN_V3.md](WHAT_IS_NEW_IN_V3.md) — the v3.0 "Strong Foundations" story: what the four pillars mean for you
+- 🛡️ [sandbox.md](sandbox.md) — run strangers' creations safely: the deny-by-default sandbox
+- 📜 [scroll-registry.md](scroll-registry.md) — publish and receive scrolls: `godcode scroll list|install|publish|info`
+- ⚙️ [plugins.md](plugins.md) — extend the engine with plugins, call them with `SUMMON`, embed God Code in Python
+- 💡 [lsp.md](lsp.md) — editor intelligence: hover, completions, and live diagnostics
+- 🤖 [agentics.md](agentics.md) — for AI agents: machine-readable `--json` reports, the `AGENTS.md` guide, and the road to v4.0 "Intent & Chain"
+- 💠 [`../examples/`](../examples/) — fifteen working creations: `seven_seals.god`, `generations.god`, `covenant_demo.god`, `summon_demo.god`, `sandbox_safe.god`, `scroll_blessings_demo.god`, and more
 - 🤝 [CONTRIBUTING.md](../CONTRIBUTING.md) — join the movement
 - 🛠️ [ISSUES.md](../ISSUES.md) — open tasks and the v2.1 roadmap
 

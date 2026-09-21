@@ -1,0 +1,6 @@
+name = "math"
+version = "1.0.0"
+author = "God Code contributors"
+description = "The Scroll of Numbers: divine arithmetic. Rites: SQRT, POW, ABS, MIN, MAX, FACTORIAL, IS_EVEN."
+entry = "math.god"
+godcode = ">=2.0"
