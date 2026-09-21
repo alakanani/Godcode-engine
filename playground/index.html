@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>God Code Playground 🕊</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  min-height:100vh;color:#f3ead3;
+  font-family:Georgia,'Palatino Linotype','Times New Roman',serif;
+  background:
+    radial-gradient(1px 1px at 12% 22%, #ffffff88 0, transparent 100%),
+    radial-gradient(1px 1px at 68% 8%, #ffffff66 0, transparent 100%),
+    radial-gradient(1.5px 1.5px at 84% 34%, #ffffff77 0, transparent 100%),
+    radial-gradient(1px 1px at 32% 66%, #ffffff55 0, transparent 100%),
+    radial-gradient(1.5px 1.5px at 55% 82%, #ffffff66 0, transparent 100%),
+    radial-gradient(1px 1px at 92% 74%, #ffffff55 0, transparent 100%),
+    radial-gradient(1100px 700px at 15% -10%, #2b2060 0%, transparent 60%),
+    radial-gradient(900px 650px at 95% 15%, #3c2063 0%, transparent 55%),
+    linear-gradient(165deg,#070b1d 0%,#141031 60%,#1c1038 100%);
+  background-attachment:fixed;
+}
+header{text-align:center;padding:34px 16px 10px}
+header h1{margin:0;font-size:clamp(30px,5vw,46px);letter-spacing:.06em;color:#f5d67b;
+  text-shadow:0 0 24px rgba(240,199,94,.35)}
+header .motto{margin:10px 0 0;font-style:italic;color:#cbb98a;font-size:clamp(15px,2.4vw,19px)}
+header .rule{width:180px;height:2px;margin:18px auto 0;
+  background:linear-gradient(90deg,transparent,#f0c75e,transparent)}
+.toolbar{max-width:1400px;margin:14px auto 0;padding:0 22px;display:flex;gap:10px;
+  flex-wrap:wrap;align-items:center}
+#samples{flex:1;min-width:220px;background:#0d1030;color:#f3ead3;
+  border:1px solid rgba(240,199,94,.35);border-radius:10px;padding:10px 12px;font-size:15px;
+  font-family:inherit}
+.btn{cursor:pointer;border-radius:10px;padding:10px 18px;font-size:15px;letter-spacing:.03em;
+  border:1px solid rgba(240,199,94,.5);font-family:inherit;
+  transition:transform .08s ease,box-shadow .2s}
+.btn-run{background:linear-gradient(135deg,#f7d774,#d9a83c);color:#2a1c05;font-weight:bold;
+  box-shadow:0 4px 18px rgba(240,199,94,.35)}
+.btn-run:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(240,199,94,.5)}
+.btn-clear{background:transparent;color:#f0c75e}
+.btn-clear:hover{background:rgba(240,199,94,.12)}
+.hint{color:#9a90b8;font-size:13px;font-style:italic}
+.layout{max-width:1400px;margin:16px auto 0;padding:0 22px;display:grid;
+  grid-template-columns:1.12fr .88fr;gap:18px}
+@media(max-width:980px){.layout{grid-template-columns:1fr}}
+.panel{background:rgba(13,12,34,.82);border:1px solid rgba(240,199,94,.28);
+  border-radius:14px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.45)}
+.panel-head{padding:10px 16px;border-bottom:1px solid rgba(240,199,94,.18);color:#f0c75e;
+  letter-spacing:.12em;font-size:13px;text-transform:uppercase}
+.editor-wrap{display:flex;height:480px}
+.gutter{padding:14px 8px 14px 14px;text-align:right;color:#6f6790;user-select:none;
+  overflow:hidden;font:13px/1.65 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  white-space:pre;border-right:1px solid rgba(240,199,94,.12);min-width:46px}
+.code-area{position:relative;flex:1;min-width:0}
+#highlight,#editor{font:13px/1.65 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  padding:14px 16px;white-space:pre;tab-size:4;margin:0;border:0}
+#highlight{position:absolute;inset:0;overflow:hidden;pointer-events:none;color:#e9e4f5}
+#highlight code{font:inherit}
+#editor{position:absolute;inset:0;width:100%;height:100%;background:transparent;
+  color:transparent;caret-color:#ffd977;resize:none;outline:none;overflow:auto}
+#editor::selection{background:rgba(240,199,94,.28)}
+.c-kw{color:#f0c75e;font-weight:bold}
+.c-str{color:#8fe388}
+.c-num{color:#7fd4ff}
+.c-com{color:#8a8fa3;font-style:italic}
+#out{height:480px;overflow-y:auto;background:#04060f;padding:14px 16px;
+  font:13px/1.65 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.cline{white-space:pre-wrap;word-break:break-word;color:#dfe6ff}
+.cline.dim{color:#6f6790}
+.cline.err{color:#ff8f8f}
+.cline.divine{color:#f0c75e}
+footer{text-align:center;color:#9a90b8;font-size:13px;padding:26px 16px 34px;font-style:italic}
+footer b{color:#cbb98a;font-style:normal}
+</style>
+</head>
+<body>
+<header>
+  <h1>🕊 God Code Playground</h1>
+  <p class="motto">&ldquo;You are not a coder. You are a creator.&rdquo;</p>
+  <div class="rule"></div>
+</header>
+<div class="toolbar">
+  <select id="samples" aria-label="Sample programs"></select>
+  <button class="btn btn-run" id="runBtn">⚡ Run Creation</button>
+  <button class="btn btn-clear" id="clearBtn">🧹 Clear</button>
+  <span class="hint">Ctrl+Enter (⌘+Enter) runs &middot; Tab inserts two spaces</span>
+</div>
+<div class="layout">
+  <section class="panel">
+    <div class="panel-head">✦ Scripture Editor</div>
+    <div class="editor-wrap">
+      <div class="gutter" id="gutter">1</div>
+      <div class="code-area">
+        <pre id="highlight" aria-hidden="true"><code id="hlcode"></code></pre>
+        <textarea id="editor" wrap="off" spellcheck="false" autocomplete="off"
+          autocapitalize="off" aria-label="God Code editor"></textarea>
+      </div>
+    </div>
+  </section>
+  <section class="panel">
+    <div class="panel-head">✦ Heavenly Console</div>
+    <div id="out" aria-live="polite"></div>
+  </section>
+</div>
+<footer>Built by <b>Alakanani Itireleng (BitcoinLady)</b> &middot; Godcode-engine v2.0</footer>
+<script>
+"use strict";
+/* ============================================================
+   GOD CODE PLAYGROUND — a compact JS interpreter of the divine
+   language, mirroring godcode-engine v2.0 (spec sections 4-6).
+   Sections: 1 Lexer · 2 Parser · 3 Values · 4 Interpreter ·
+             5 Scrolls · 6 Samples · 7 UI
+   ============================================================ */
+
+/* ---------------- 1. LEXER ---------------- */
+class GodError extends Error {
+  constructor(message, line, col){ super(message); this.line=line||null; this.col=col||null; }
+}
+class ReturnSignal { constructor(value){ this.value=value; } }  // thrown by RETURN, caught at rite boundary
+class AscendSignal {}                                            // thrown by ASCEND, caught at run()
+
+// Keywords are matched case-insensitively (canonical form = UPPER); idents keep case.
+const KEYWORDS = new Set((
+  "BEGIN CREATION END DECLARE AS BREATHE LIFE INTO REVEAL PROPHESY ASCEND " +
+  "IF THEN ELSE ENDIF FOR IN ENDFOR WHILE DO ENDWHILE DEFINE RITE INVOKE RETURN IMPORT " +
+  "IS NOT AND OR REFLECT BLESS ANOINT SEAL TESTIFY TRUE FALSE").split(" "));
+
+function lex(source){
+  const tokens=[];
+  const lines=source.split("\n");
+  for(let ln=0; ln<lines.length; ln++){
+    const line=lines[ln];
+    let col=0;
+    while(col<line.length){
+      const ch=line[col];
+      if(ch===" "||ch==="\t"||ch==="\r"){ col++; continue; }
+      if(ch==="#") break;                                   // comment to end of line
+      const sc=col+1;                                       // 1-based col
+      if(ch==='"'){                                         // string with escapes
+        let s="", i=col+1, closed=false;
+        while(i<line.length){
+          const c=line[i];
+          if(c==="\\" && i+1<line.length){
+            const e=line[i+1];
+            s += e==="n"?"\n" : e==="t"?"\t" : e==='"'?'"' : e==="\\"? "\\" : e;
+            i+=2; continue;
+          }
+          if(c==='"'){ closed=true; i++; break; }
+          s+=c; i++;
+        }
+        if(!closed) throw new GodError("Unterminated string — every word must be sealed with a closing quote.", ln+1, sc);
+        tokens.push({type:"STRING", value:s, line:ln+1, col:sc});
+        col=i; continue;
+      }
+      if(ch>="0"&&ch<="9"){                                 // int or float
+        let j=col;
+        while(j<line.length && line[j]>="0"&&line[j]<="9") j++;
+        if(line[j]==="." && j+1<line.length && line[j+1]>="0"&&line[j+1]<="9"){
+          j++;
+          while(j<line.length && line[j]>="0"&&line[j]<="9") j++;
+          tokens.push({type:"NUMBER", value:parseFloat(line.slice(col,j)), line:ln+1, col:sc});
+        }else{
+          tokens.push({type:"NUMBER", value:parseInt(line.slice(col,j),10), line:ln+1, col:sc});
+        }
+        col=j; continue;
+      }
+      if((ch>="A"&&ch<="Z")||(ch>="a"&&ch<="z")||ch==="_"){   // keyword or identifier
+        let j=col;
+        while(j<line.length && /[A-Za-z0-9_]/.test(line[j])) j++;
+        const word=line.slice(col,j), up=word.toUpperCase();
+        if(KEYWORDS.has(up)) tokens.push({type:up, value:up, line:ln+1, col:sc});
+        else tokens.push({type:"IDENT", value:word, line:ln+1, col:sc});
+        col=j; continue;
+      }
+      const two=line.slice(col,col+2);                       // multi-char operators first
+      const twoTypes={"!=":"NEQ","<=":"LTE",">=":"GTE"};
+      if(twoTypes[two]){
+        tokens.push({type:twoTypes[two], value:two, line:ln+1, col:sc}); col+=2; continue;
+      }
+      const ops={"=":"EQ","<":"LT",">":"GT","+":"PLUS","-":"MINUS","*":"STAR","/":"SLASH",
+                 "%":"PERCENT","(":"LPAREN",")":"RPAREN","[":"LBRACKET","]":"RBRACKET",",":"COMMA"};
+      if(ops[ch]){ tokens.push({type:ops[ch], value:ch, line:ln+1, col:sc}); col++; continue; }
+      throw new GodError("Illegal character '"+ch+"' — the heavens do not recognize this mark.", ln+1, sc);
+    }
+    tokens.push({type:"NEWLINE", value:"\\n", line:ln+1, col:line.length+1});
+  }
+  tokens.push({type:"EOF", value:"", line:lines.length, col:1});
+  return tokens;
+}
+
+/* ---------------- 2. PARSER (recursive descent) ---------------- */
+class Parser{
+  constructor(tokens){ this.t=tokens; this.i=0; }
+  peek(){ return this.t[this.i]; }
+  peek2(){ return this.t[this.i+1] || {type:"EOF"}; }
+  next(){ return this.t[this.i++]; }
+  at(type){ return this.peek().type===type; }
+  expect(type,label){
+    const t=this.next();
+    if(t.type!==type) throw new GodError("Expected "+(label||type)+" but found '"+t.value+"'.", t.line, t.col);
+    return t;
+  }
+  skipNL(){ while(this.at("NEWLINE")) this.next(); }
+
+  parse(){
+    const stmts=this.parseStatements(new Set(["EOF"]));
+    this.expect("EOF");
+    return {kind:"Program", statements:stmts, line:1};
+  }
+  // Parse statements until EOF or one of the closing keywords in `end`.
+  parseStatements(end){
+    const out=[];
+    for(;;){
+      this.skipNL();
+      const t=this.peek();
+      if(t.type==="EOF"||end.has(t.type)) break;
+      out.push(this.parseStatement());
+      const n=this.peek();
+      if(n.type==="NEWLINE") this.next();
+      else if(n.type==="EOF"||end.has(n.type)){/* terminator belongs to an outer block */}
+      else throw new GodError("Unexpected '"+n.value+"' — each statement must rest on its own line.", n.line, n.col);
+    }
+    return out;
+  }
+
+  parseStatement(){
+    const t=this.peek();
+    switch(t.type){
+      case "BEGIN":   return this.parseCreation();
+      case "DECLARE": return this.parseDeclare();
+      case "BREATHE":
+        this.next(); this.expect("LIFE","LIFE"); this.expect("INTO","INTO");
+        return {kind:"Breathe", name:this.expect("IDENT","a name").value, line:t.line};
+      case "REVEAL":
+        this.next(); this.expect("LPAREN","'('");
+        const e=this.parseExpr(); this.expect("RPAREN","')'");
+        return {kind:"Reveal", expr:e, line:t.line};
+      case "PROPHESY": {                                     // rest of the line becomes the text
+        this.next(); const parts=[];
+        while(!this.at("NEWLINE")&&!this.at("EOF")) parts.push(String(this.next().value));
+        return {kind:"Prophesy", text:parts.join(" "), line:t.line};
+      }
+      case "ASCEND":  this.next(); return {kind:"Ascend", line:t.line};
+      case "REFLECT": this.next(); return {kind:"Reflect", line:t.line};
+      case "BLESS":   this.next(); return {kind:"Bless",  name:this.expect("IDENT","a name").value, line:t.line};
+      case "ANOINT":  this.next(); return {kind:"Anoint", name:this.expect("IDENT","a name").value, line:t.line};
+      case "SEAL":    this.next(); return {kind:"Seal",    expr:this.parseExpr(), line:t.line};
+      case "TESTIFY": this.next(); return {kind:"Testify", expr:this.parseExpr(), line:t.line};
+      case "IF":     return this.parseIf();
+      case "FOR":    return this.parseFor();
+      case "WHILE":  return this.parseWhile();
+      case "DEFINE": return this.parseRite();
+      case "RETURN": {
+        this.next(); let ex=null;
+        if(!this.at("NEWLINE")&&!this.at("EOF")) ex=this.parseExpr();
+        return {kind:"Return", expr:ex, line:t.line};
+      }
+      case "IMPORT":
+        this.next();
+        return {kind:"Import", path:this.expect("STRING","a scroll name in quotes").value, line:t.line};
+      case "INVOKE": {                                       // INVOKE name(args) as a statement
+        this.next(); const nm=this.expect("IDENT","a rite name");
+        this.expect("LPAREN","'('"); const args=this.parseArgs();
+        return {kind:"ExprStmt", expr:{kind:"Call", name:nm.value, args, line:t.line}, line:t.line};
+      }
+      default: {                                             // bare expression statement (incl. calls)
+        const ex2=this.parseExpr();
+        return {kind:"ExprStmt", expr:ex2, line:t.line};
+      }
+    }
+  }
+
+  parseCreation(){
+    const t=this.expect("BEGIN");
+    this.expect("CREATION","CREATION");
+    const body=this.parseStatements(new Set(["END","EOF"]));
+    this.expect("END","END CREATION"); this.expect("CREATION","CREATION");
+    return {kind:"Creation", statements:body, line:t.line};
+  }
+  parseDeclare(){
+    const t=this.expect("DECLARE");
+    const nm=this.expect("IDENT","a name");
+    this.expect("AS","AS");
+    const items=[this.parseExpr()];
+    while(this.at("COMMA")){ this.next(); items.push(this.parseExpr()); }
+    const value=items.length>1 ? {kind:"List", items, line:t.line} : items[0];
+    return {kind:"Declare", name:nm.value, value, line:t.line};
+  }
+  parseIf(){
+    const t=this.expect("IF");
+    const cond=this.parseExpr();
+    this.expect("THEN","THEN");
+    if(this.at("NEWLINE")){                                 // block form
+      this.next();
+      const thenB=this.parseStatements(new Set(["ELSE","ENDIF","EOF"]));
+      let elseB=[];
+      if(this.at("ELSE")){ this.next(); elseB=this.parseStatements(new Set(["ENDIF","EOF"])); }
+      this.expect("ENDIF","ENDIF");
+      return {kind:"If", cond, then:thenB, else:elseB, line:t.line};
+    }
+    const s=this.parseStatement();                          // inline form: single statements
+    let e=null;
+    if(this.at("ELSE")){ this.next(); e=this.parseStatement(); }
+    return {kind:"If", cond, then:[s], else:e?[e]:[], line:t.line};
+  }
+  parseFor(){
+    const t=this.expect("FOR");
+    const nm=this.expect("IDENT","a name for the traveler");
+    this.expect("IN","IN");
+    const iter=this.parseExpr();
+    let body;
+    if(this.at("NEWLINE")){                                 // block form; ENDFOR optional (legacy runs to END)
+      this.next();
+      body=this.parseStatements(new Set(["ENDFOR","END","EOF"]));
+      if(this.at("ENDFOR")) this.next();
+    }else{
+      body=[this.parseStatement()];                          // inline form
+    }
+    return {kind:"For", var:nm.value, iter, body, line:t.line};
+  }
+  parseWhile(){
+    const t=this.expect("WHILE");
+    const cond=this.parseExpr();
+    this.expect("DO","DO");
+    let body;
+    if(this.at("NEWLINE")){
+      this.next();
+      body=this.parseStatements(new Set(["ENDWHILE","EOF"]));
+      this.expect("ENDWHILE","ENDWHILE");
+    }else{
+      body=[this.parseStatement()];
+    }
+    return {kind:"While", cond, body, line:t.line};
+  }
+  parseRite(){
+    const t=this.expect("DEFINE");
+    this.expect("RITE","RITE");
+    const nm=this.expect("IDENT","a rite name");
+    this.expect("LPAREN","'('");
+    const params=[];
+    if(!this.at("RPAREN")){
+      params.push(this.expect("IDENT","a parameter name").value);
+      while(this.at("COMMA")){ this.next(); params.push(this.expect("IDENT","a parameter name").value); }
+    }
+    this.expect("RPAREN","')'");
+    const body=this.parseStatements(new Set(["END","EOF"])); // works inline too: `DEFINE RITE f(x) SEAL x END RITE`
+    this.expect("END","END RITE"); this.expect("RITE","RITE");
+    return {kind:"RiteDef", name:nm.value, params, body, line:t.line};
+  }
+  parseArgs(){
+    const args=[];
+    if(!this.at("RPAREN")){
+      args.push(this.parseExpr());
+      while(this.at("COMMA")){ this.next(); args.push(this.parseExpr()); }
+    }
+    this.expect("RPAREN","')'");
+    return args;
+  }
+
+  /* Expression precedence (low → high):
+     or → and → not → comparison → additive → multiplicative → unary → primary */
+  parseExpr(){ return this.parseOr(); }
+  parseOr(){
+    let l=this.parseAnd();
+    while(this.at("OR")){ const t=this.next(); l={kind:"Binary", op:"or", left:l, right:this.parseAnd(), line:t.line}; }
+    return l;
+  }
+  parseAnd(){
+    let l=this.parseNot();
+    while(this.at("AND")){ const t=this.next(); l={kind:"Binary", op:"and", left:l, right:this.parseNot(), line:t.line}; }
+    return l;
+  }
+  parseNot(){
+    if(this.at("NOT")){ const t=this.next(); return {kind:"Unary", op:"not", operand:this.parseNot(), line:t.line}; }
+    return this.parseComparison();
+  }
+  parseComparison(){
+    let l=this.parseAdditive();
+    for(;;){
+      const t=this.peek();
+      let op=null;
+      if(t.type==="IS"){ this.next(); if(this.at("NOT")){ this.next(); op="!="; } else op="=="; }
+      else if(t.type==="EQ"){ this.next(); op="=="; }
+      else if(t.type==="NEQ"){ this.next(); op="!="; }
+      else if(t.type==="LT"){ this.next(); op="<"; }
+      else if(t.type==="GT"){ this.next(); op=">"; }
+      else if(t.type==="LTE"){ this.next(); op="<="; }
+      else if(t.type==="GTE"){ this.next(); op=">="; }
+      else break;
+      l={kind:"Binary", op, left:l, right:this.parseAdditive(), line:t.line};
+    }
+    return l;
+  }
+  parseAdditive(){
+    let l=this.parseMultiplicative();
+    while(this.at("PLUS")||this.at("MINUS")){
+      const t=this.next();
+      l={kind:"Binary", op:t.value, left:l, right:this.parseMultiplicative(), line:t.line};
+    }
+    return l;
+  }
+  parseMultiplicative(){
+    let l=this.parseUnary();
+    while(this.at("STAR")||this.at("SLASH")||this.at("PERCENT")){
+      const t=this.next();
+      l={kind:"Binary", op:t.value, left:l, right:this.parseUnary(), line:t.line};
+    }
+    return l;
+  }
+  parseUnary(){
+    if(this.at("MINUS")){ const t=this.next(); return {kind:"Unary", op:"-", operand:this.parseUnary(), line:t.line}; }
+    if(this.at("NOT")){ const t=this.next(); return {kind:"Unary", op:"not", operand:this.parseUnary(), line:t.line}; }
+    return this.parsePostfix();
+  }
+  parsePostfix(){
+    let n=this.parsePrimary();
+    while(this.at("LBRACKET")){
+      const t=this.next();
+      const ix=this.parseExpr();
+      this.expect("RBRACKET","']'");
+      n={kind:"Index", obj:n, index:ix, line:t.line};
+    }
+    return n;
+  }
+  parsePrimary(){
+    const t=this.peek();
+    switch(t.type){
+      case "NUMBER": case "STRING":
+        this.next(); return {kind:"Literal", value:t.value, line:t.line};
+      case "TRUE":  this.next(); return {kind:"Literal", value:true, line:t.line};
+      case "FALSE": this.next(); return {kind:"Literal", value:false, line:t.line};
+      case "IDENT":
+        if(this.peek2().type==="LPAREN"){
+          this.next(); this.next();
+          return {kind:"Call", name:t.value, args:this.parseArgs(), line:t.line};
+        }
+        this.next(); return {kind:"Ident", name:t.value, line:t.line};
+      case "LPAREN":
+        this.next(); const e=this.parseExpr(); this.expect("RPAREN","')'"); return e;
+      case "LBRACKET": {
+        this.next(); const items=[];
+        if(!this.at("RBRACKET")){
+          items.push(this.parseExpr());
+          while(this.at("COMMA")){ this.next(); items.push(this.parseExpr()); }
+        }
+        this.expect("RBRACKET","']'");
+        return {kind:"List", items, line:t.line};
+      }
+      default:
+        throw new GodError("Unexpected '"+t.value+"' — a value was expected here (a number, \"word\", name, or list).", t.line, t.col);
+    }
+  }
+}
+
+/* ---------------- 3. VALUES & HELPERS ---------------- */
+// The Symbol rule: an unbound name evaluates to a Sym — its own name as a word.
+class Sym{ constructor(name){ this.name=name; } }
+class Contract{
+  constructor(name){ this.name=name; this.alive=false; this.blessed=false; this.anointed=false; }
+}
+class Rite{ constructor(name,params,body,closure){ this.name=name; this.params=params; this.body=body; this.closure=closure; } }
+
+class Env{
+  constructor(parent){ this.parent=parent||null; this.map=new Map(); }
+  define(n,v){ this.map.set(n,v); }
+  has(n){ return this.map.has(n) || (this.parent ? this.parent.has(n) : false); }
+  get(n){
+    if(this.map.has(n)) return this.map.get(n);
+    if(this.parent) return this.parent.get(n);
+    return new Sym(n);                                        // the Symbol rule
+  }
+}
+
+function typeName(v){
+  if(v===null||v===undefined) return "void";
+  if(typeof v==="boolean") return "boolean";
+  if(typeof v==="number") return "number";
+  if(typeof v==="string") return "string";
+  if(v instanceof Sym) return "symbol";
+  if(Array.isArray(v)) return "list";
+  if(v instanceof Contract) return "contract";
+  if(v instanceof Rite) return "rite";
+  return "unknown";
+}
+function stringify(v){
+  if(v===null||v===undefined) return "void";
+  if(typeof v==="boolean") return v?"true":"false";
+  if(typeof v==="number"){
+    if(Number.isInteger(v)) return String(v);
+    if(Math.abs(v-Math.round(v))<1e-6) return String(Math.round(v));  // 12.00000001 → 12
+    return String(v);
+  }
+  if(typeof v==="string") return v;
+  if(v instanceof Sym) return v.name;
+  if(v instanceof Contract) return 'contract("'+v.name+'")';
+  if(Array.isArray(v)) return "["+v.map(stringify).join(", ")+"]";
+  if(v instanceof Rite) return "<rite "+v.name+">";
+  return String(v);
+}
+function truthy(v){
+  if(v===null||v===undefined) return false;
+  if(typeof v==="boolean") return v;
+  if(typeof v==="number") return v!==0;
+  if(typeof v==="string") return v.length>0;
+  if(v instanceof Sym) return true;                           // a named spirit is always truthy
+  if(Array.isArray(v)) return v.length>0;
+  return true;                                                // contracts and rites exist, therefore are
+}
+function txt(v){ return v instanceof Sym ? v.name : v; }      // word text of string-or-symbol
+function isEqual(a,b){
+  if(a instanceof Sym && b instanceof Sym) return a.name===b.name;
+  if(a instanceof Sym && typeof b==="string") return a.name===b;
+  if(typeof a==="string" && b instanceof Sym) return a===b.name;
+  if(a instanceof Contract && b instanceof Contract) return a.name===b.name;
+  if(Array.isArray(a) && Array.isArray(b))
+    return a.length===b.length && a.every((x,i)=>isEqual(x,b[i]));
+  if(typeof a==="number" && typeof b==="number") return a===b;
+  return a===b;
+}
+function addVals(a,b,line){
+  if(typeof a==="number" && typeof b==="number") return a+b;
+  const sa=txt(a), sb=txt(b);
+  if(typeof sa==="string" && typeof sb==="string") return sa+sb;
+  if(Array.isArray(a) && Array.isArray(b)) return a.concat(b);
+  throw new GodError("cannot join "+typeName(a)+" and "+typeName(b)+
+    " with '+' — join numbers with numbers, words with words, lists with lists.", line);
+}
+function cmpVals(op,a,b,line){
+  const ta=txt(a), tb=txt(b);
+  const num = typeof a==="number" && typeof b==="number";
+  const str = typeof ta==="string" && typeof tb==="string";
+  if(!num && !str)
+    throw new GodError("cannot weigh "+typeName(a)+" against "+typeName(b)+" — only numbers or words may be compared.", line);
+  const x=num?a:ta, y=num?b:tb;
+  switch(op){
+    case "<":  return x<y;
+    case ">":  return x>y;
+    case "<=": return x<=y;
+    case ">=": return x>=y;
+  }
+}
+
+/* ---------------- 4. BUILT-INS ---------------- */
+const BUILTINS={
+  LEN:{min:1,max:1,fn(a,line){const x=a[0];
+    if(typeof x==="string"||x instanceof Sym) return txt(x).length;
+    if(Array.isArray(x)) return x.length;
+    throw new GodError("LEN cannot measure a "+typeName(x)+" — only words and lists have length.",line);}},
+  STR:{min:1,max:1,fn(a){return stringify(a[0]);}},
+  NUM:{min:1,max:1,fn(a,line){const x=a[0];
+    if(typeof x==="number") return x;
+    if(typeof x==="string"||x instanceof Sym){
+      const s=txt(x).trim();
+      if(s!=="" && !isNaN(Number(s))) return Number(s);
+      throw new GodError('cannot transmute "'+txt(x)+'" into a number.',line);
+    }
+    throw new GodError("NUM cannot transmute a "+typeName(x)+" into a number.",line);}},
+  TYPE:{min:1,max:1,fn(a){return typeName(a[0]);}},
+  RANDOM:{min:1,max:1,fn(a,line){const n=a[0];
+    if(typeof n!=="number"||n<1) throw new GodError("RANDOM needs a positive number of lots to cast.",line);
+    return Math.floor(Math.random()*Math.floor(n));}},
+  RANGE:{min:1,max:2,fn(a,line){
+    const lo=a.length===2?a[0]:0, hi=a.length===2?a[1]:a[0];
+    if(typeof lo!=="number"||typeof hi!=="number"||!Number.isInteger(lo)||!Number.isInteger(hi))
+      throw new GodError("RANGE needs whole numbers.",line);
+    const out=[]; for(let i=lo;i<hi;i++) out.push(i); return out;}},
+  PUSH:{min:2,max:2,fn(a,line){
+    if(!Array.isArray(a[0])) throw new GodError("PUSH needs a list, not "+typeName(a[0])+".",line);
+    return a[0].concat([a[1]]);}},
+  UPPER:{min:1,max:1,fn(a,line){
+    if(typeof a[0]!=="string"&&!(a[0] instanceof Sym)) throw new GodError("UPPER needs a word, not "+typeName(a[0])+".",line);
+    return txt(a[0]).toUpperCase();}},
+  LOWER:{min:1,max:1,fn(a,line){
+    if(typeof a[0]!=="string"&&!(a[0] instanceof Sym)) throw new GodError("LOWER needs a word, not "+typeName(a[0])+".",line);
+    return txt(a[0]).toLowerCase();}},
+  SPLIT:{min:2,max:2,fn(a,line){
+    if(typeof a[0]!=="string"&&!(a[0] instanceof Sym)) throw new GodError("SPLIT needs a word, not "+typeName(a[0])+".",line);
+    if(typeof a[1]!=="string"&&!(a[1] instanceof Sym)) throw new GodError("SPLIT needs a word to split upon.",line);
+    return txt(a[0]).split(txt(a[1]));}},
+  JOIN:{min:2,max:2,fn(a,line){
+    if(!Array.isArray(a[0])) throw new GodError("JOIN needs a list, not "+typeName(a[0])+".",line);
+    if(typeof a[1]!=="string"&&!(a[1] instanceof Sym)) throw new GodError("JOIN needs a word to join with.",line);
+    return a[0].map(stringify).join(txt(a[1]));}},
+  BEHOLD:{min:0,max:0,fn(){return new Date().toISOString();}},
+  REVERSE:{min:1,max:1,fn(a,line){const x=a[0];
+    if(typeof x==="string") return [...x].reverse().join("");
+    if(x instanceof Sym) return [...x.name].reverse().join("");
+    if(Array.isArray(x)) return x.slice().reverse();
+    throw new GodError("REVERSE cannot turn back a "+typeName(x)+".",line);}},
+};
+
+// PROPHESY: a simple keyword-reading oracle (the full SpiritEngine lives in Python).
+function prophesy(text){
+  const t=(text||"").toLowerCase();
+  const omens=[];
+  const has=(...ws)=>ws.some(w=>t.indexOf(w)!==-1);
+  if(has("harvest","wheat","field","rain","crop","seed"))   omens.push("the fields shall yield in abundance");
+  if(has("future","tomorrow","ahead","destiny","fate"))     omens.push("the days ahead are numbered, and they are known");
+  if(has("code","creation","build","program","creator"))    omens.push("your creation shall compile in the heavens");
+  if(has("war","battle","enemy","fight"))                  omens.push("the battle belongs to the Lord — stand still and see");
+  if(has("journey","path","road","way","walk"))             omens.push("your path is made straight before you");
+  if(has("love","heart","beloved"))                        omens.push("love shall find you in due season");
+  if(has("bless","favor","grace"))                         omens.push("blessings shall overflow like the rivers of Eden");
+  if(has("money","wealth","gold","rich","prosper"))        omens.push("prosperity comes to the diligent hand");
+  if(omens.length===0) omens.push("the Spirit is quiet on this matter — BREATHE, and try again");
+  return "🔮 Thus saith the interpreter: "+omens.join("; ")+". Amen.";
+}
+
+/* ---------------- 5. INTERPRETER ---------------- */
+class Interpreter{
+  constructor(){ this.env=new Env(); this.output=[]; this.blocks=[]; this.imported=new Set(); }
+  print(s){ this.output.push(String(s)); }
+
+  run(source){
+    const prog=new Parser(lex(source)).parse();
+    try{ this.execBlock(prog.statements,this.env); }
+    catch(e){
+      if(e instanceof AscendSignal){ this.print("🕊 Creation ascended in peace."); return; }
+      if(e instanceof ReturnSignal) throw new GodError("RETURN may only be spoken within a rite.",null);
+      throw e;
+    }
+  }
+  execBlock(stmts,env){ for(const s of stmts) this.exec(s,env); }
+
+  mustBeBound(env,name,verb,line){
+    if(!env.has(name)) throw new GodError("there is no "+name+" to "+verb+" — declare it first.",line);
+    return env.get(name);
+  }
+  // In-memory covenant chain (a djb2 hash stands in for sha256 here).
+  seal(record){
+    const prev=this.blocks.length?this.blocks[this.blocks.length-1].hash:"GENESIS";
+    const ts=new Date().toISOString();
+    const raw=this.blocks.length+"|"+ts+"|"+record+"|"+prev;
+    let h=5381;
+    for(let i=0;i<raw.length;i++) h=((h<<5)+h+raw.charCodeAt(i))>>>0;
+    const block={index:this.blocks.length,timestamp:ts,record,prev,hash:h.toString(16).padStart(8,"0")};
+    this.blocks.push(block);
+    return block;
+  }
+
+  exec(n,env){
+    switch(n.kind){
+      case "Creation": this.execBlock(n.statements,env); break;
+      case "Declare":  env.define(n.name,this.eval(n.value,env)); break;
+      case "Breathe": {
+        const v=this.mustBeBound(env,n.name,"breathe into",n.line);
+        if(v instanceof Contract) v.alive=true;
+        this.print("[BREATHE] Life breathed into "+n.name+" 🕊"); break;
+      }
+      case "Reveal":   this.print(stringify(this.eval(n.expr,env))); break;
+      case "Prophesy": this.print(prophesy(n.text)); break;
+      case "Ascend":   throw new AscendSignal();
+      case "Reflect": {
+        const seen=new Map(); let e=env;
+        while(e){ for(const [k,v] of e.map) if(!seen.has(k)) seen.set(k,v); e=e.parent; }
+        if(seen.size===0) this.print("(the heavens are empty — nothing is declared)");
+        for(const [k,v] of seen) this.print(k+" = "+stringify(v));
+        break;
+      }
+      case "Bless": {
+        const v=this.mustBeBound(env,n.name,"bless",n.line);
+        if(v instanceof Contract) v.blessed=true;
+        this.print("[BLESS] "+n.name+" is blessed ✝"); break;
+      }
+      case "Anoint": {
+        const v=this.mustBeBound(env,n.name,"anoint",n.line);
+        if(v instanceof Contract) v.anointed=true;
+        this.print("[ANOINT] "+n.name+" is anointed 🕯"); break;
+      }
+      case "Seal": {
+        const b=this.seal(stringify(this.eval(n.expr,env)));
+        this.print("[SEAL] Covenant sealed · block "+b.index+" · "+b.hash+" 🔒"); break;
+      }
+      case "Testify":
+        if(truthy(this.eval(n.expr,env))) this.print("[TESTIFY] It is true. ✝");
+        else throw new GodError("testimony failed — the heavens are silent on this matter.",n.line);
+        break;
+      case "If":
+        this.execBlock(truthy(this.eval(n.cond,env))?n.then:n.else, env); break;
+      case "For": {
+        const it=this.eval(n.iter,env);
+        let items;
+        if(Array.isArray(it)) items=it;
+        else if(typeof it==="string") items=[...it];
+        else if(it instanceof Sym) items=[...it.name];
+        else throw new GodError("cannot journey through "+typeName(it)+" — FOR needs a list or a word.",n.line);
+        const had=env.map.has(n.var), old=had?env.map.get(n.var):undefined;
+        for(const item of items){ env.define(n.var,item); this.execBlock(n.body,env); }
+        if(had) env.define(n.var,old); else env.map.delete(n.var);   // restore the traveler's name
+        break;
+      }
+      case "While": {
+        let guard=100000;
+        while(truthy(this.eval(n.cond,env))){
+          if(guard--<=0) throw new GodError("the cycle is endless — WHILE has turned 100,000 times without rest.",n.line);
+          this.execBlock(n.body,env);
+        }
+        break;
+      }
+      case "RiteDef": env.define(n.name,new Rite(n.name,n.params,n.body,env)); break;
+      case "Return":  throw new ReturnSignal(n.expr?this.eval(n.expr,env):null);
+      case "Import": {
+        const key=n.path.toLowerCase().replace(/\.god$/,"");
+        const src=SCROLLS[key];
+        if(!src) throw new GodError('no scroll named "'+n.path+'" rests in the temple library — try: math, strings, lists, time, prophecy, covenant.',n.line);
+        if(this.imported.has(key)) break;                            // each scroll is read once
+        this.imported.add(key);
+        this.execBlock(new Parser(lex(src)).parse().statements,env);
+        break;
+      }
+      case "ExprStmt": this.eval(n.expr,env); break;                 // value discarded
+      default: throw new GodError("the interpreter encountered an unknown form.",n.line);
+    }
+  }
+
+  eval(n,env){
+    switch(n.kind){
+      case "Literal": return n.value;
+      case "Ident":   return env.get(n.name);
+      case "List":    return n.items.map(i=>this.eval(i,env));
+      case "Index":   return this.evalIndex(n,env);
+      case "Unary": {
+        const v=this.eval(n.operand,env);
+        if(n.op==="not") return !truthy(v);
+        if(typeof v!=="number") throw new GodError("the minus sign falls only upon numbers, not "+typeName(v)+".",n.line);
+        return -v;
+      }
+      case "Binary": {
+        const l=this.eval(n.left,env);
+        if(n.op==="and") return truthy(l)?this.eval(n.right,env):l;   // short-circuit, like Python
+        if(n.op==="or")  return truthy(l)?l:this.eval(n.right,env);
+        return this.evalBinary(n.op,l,this.eval(n.right,env),n.line);
+      }
+      case "Call": return this.evalCall(n,env);
+    }
+    throw new GodError("the interpreter encountered an unknown value.",n.line);
+  }
+  evalBinary(op,l,r,line){
+    switch(op){
+      case "+": return addVals(l,r,line);
+      case "-": case "*": case "/": case "%": {
+        if(typeof l!=="number"||typeof r!=="number")
+          throw new GodError("'"+op+"' reckons only numbers — not "+typeName(l)+" and "+typeName(r)+".",line);
+        if((op==="/"||op==="%")&&r===0)
+          throw new GodError("cannot divide by nothing — the void has no portions.",line);
+        return op==="-"?l-r : op==="*"?l*r : op==="/"?l/r : l%r;
+      }
+      case "==": return isEqual(l,r);
+      case "!=": return !isEqual(l,r);
+      case "<": case ">": case "<=": case ">=": return cmpVals(op,l,r,line);
+    }
+    throw new GodError("unknown reckoning '"+op+"'.",line);
+  }
+  evalIndex(n,env){
+    const o=this.eval(n.obj,env), ix=this.eval(n.index,env);
+    if(typeof ix!=="number"||!Number.isInteger(ix))
+      throw new GodError("an index must be a whole number, not "+stringify(ix)+".",n.line);
+    const s=o instanceof Sym?o.name:o;
+    if(Array.isArray(o)||typeof s==="string"){
+      const len=Array.isArray(o)?o.length:s.length;
+      let i=ix; if(i<0) i+=len;
+      if(i<0||i>=len) throw new GodError("index "+ix+" is beyond the edge — the "+
+        (Array.isArray(o)?"list":"word")+" holds only "+len+".",n.line);
+      return Array.isArray(o)?o[i]:s[i];
+    }
+    throw new GodError("cannot index into "+typeName(o)+" — only lists and words may be indexed.",n.line);
+  }
+  evalCall(n,env){
+    const up=n.name.toUpperCase();
+    const args=n.args.map(a=>this.eval(a,env));
+    if(up==="CONTRACT"){
+      if(args.length!==1) throw new GodError("contract() names exactly one covenant, but received "+args.length+".",n.line);
+      if(typeof args[0]!=="string"&&!(args[0] instanceof Sym))
+        throw new GodError("a covenant must be named with a word, not "+typeName(args[0])+".",n.line);
+      return new Contract(txt(args[0]));
+    }
+    const b=BUILTINS[up];
+    if(b){
+      if(args.length<b.min||args.length>b.max){
+        const want=b.min===b.max?""+b.min:b.min+"–"+b.max;
+        throw new GodError(n.name+" expects "+want+" offering(s), but received "+args.length+".",n.line);
+      }
+      return b.fn(args,n.line);
+    }
+    const rite=this.findRite(env,n.name);
+    if(rite) return this.callRite(rite,args,n.line);
+    if(env.has(n.name))
+      throw new GodError("'"+n.name+"' is a "+typeName(env.get(n.name))+", not a rite that may be invoked.",n.line);
+    throw new GodError("no such rite '"+n.name+"' — it is not written in the scrolls.",n.line);
+  }
+  findRite(env,name){
+    for(const k of [name,name.toUpperCase()]){
+      if(env.has(k)){ const v=env.get(k); if(v instanceof Rite) return v; }
+    }
+    return null;
+  }
+  callRite(rite,args,line){
+    if(args.length!==rite.params.length)
+      throw new GodError("rite "+rite.name+" expects "+rite.params.length+" offering(s), but received "+args.length+".",line);
+    const cenv=new Env(rite.closure);
+    rite.params.forEach((p,i)=>cenv.define(p,args[i]));
+    try{ this.execBlock(rite.body,cenv); }
+    catch(e){ if(e instanceof ReturnSignal) return e.value; throw e; }
+    return null;                                                     // a rite with no RETURN yields void
+  }
+}
+
+/* ---------------- 6. SCROLLS (stdlib, written in God Code itself) ---------------- */
+const SCROLLS={
+math:
+`# The Math Scroll — divine reckonings
+DEFINE RITE SQRT(x)
+    DECLARE guess AS x / 2
+    IF guess IS 0 THEN
+        RETURN 0
+    ENDIF
+    WHILE ABS(guess * guess - x) > 0.0001 DO
+        DECLARE guess AS (guess + x / guess) / 2
+    ENDWHILE
+    RETURN guess
+END RITE
+
+DEFINE RITE POW(b, e)
+    DECLARE result AS 1
+    DECLARE i AS 0
+    WHILE i < e DO
+        DECLARE result AS result * b
+        DECLARE i AS i + 1
+    ENDWHILE
+    RETURN result
+END RITE
+
+DEFINE RITE ABS(x)
+    IF x < 0 THEN
+        RETURN 0 - x
+    ENDIF
+    RETURN x
+END RITE
+
+DEFINE RITE MIN(a, b)
+    IF a < b THEN
+        RETURN a
+    ENDIF
+    RETURN b
+END RITE
+
+DEFINE RITE MAX(a, b)
+    IF a > b THEN
+        RETURN a
+    ENDIF
+    RETURN b
+END RITE
+
+DEFINE RITE FACTORIAL(n)
+    DECLARE result AS 1
+    DECLARE i AS 2
+    WHILE i <= n DO
+        DECLARE result AS result * i
+        DECLARE i AS i + 1
+    ENDWHILE
+    RETURN result
+END RITE
+
+DEFINE RITE IS_EVEN(n)
+    RETURN n % 2 IS 0
+END RITE`,
+strings:
+`# The Strings Scroll — the Word, shaped
+DEFINE RITE SHOUT(s)
+    RETURN UPPER(s) + "!"
+END RITE
+
+DEFINE RITE WHISPER(s)
+    RETURN LOWER(s)
+END RITE
+
+DEFINE RITE WORDS(s)
+    RETURN SPLIT(s, " ")
+END RITE
+
+DEFINE RITE CHARS(s)
+    RETURN SPLIT(s, "")
+END RITE
+
+DEFINE RITE FIRST(s)
+    RETURN s[0]
+END RITE
+
+DEFINE RITE LAST(s)
+    RETURN s[LEN(s) - 1]
+END RITE`,
+lists:
+`# The Lists Scroll — multitudes, ordered
+DEFINE RITE SUM(xs)
+    DECLARE total AS 0
+    FOR x IN xs
+        DECLARE total AS total + x
+    ENDFOR
+    RETURN total
+END RITE
+
+DEFINE RITE AVG(xs)
+    RETURN SUM(xs) / LEN(xs)
+END RITE
+
+DEFINE RITE CONTAINS(xs, x)
+    FOR item IN xs
+        IF item IS x THEN
+            RETURN TRUE
+        ENDIF
+    ENDFOR
+    RETURN FALSE
+END RITE
+
+DEFINE RITE SECOND(xs)
+    RETURN xs[1]
+END RITE
+
+DEFINE RITE TAIL(xs)
+    DECLARE rest AS []
+    DECLARE i AS 1
+    WHILE i < LEN(xs) DO
+        DECLARE rest AS PUSH(rest, xs[i])
+        DECLARE i AS i + 1
+    ENDWHILE
+    RETURN rest
+END RITE
+
+DEFINE RITE COUNT(xs, x)
+    DECLARE n AS 0
+    FOR item IN xs
+        IF item IS x THEN
+            DECLARE n AS n + 1
+        ENDIF
+    ENDFOR
+    RETURN n
+END RITE`,
+time:
+`# The Time Scroll — seasons and appointed times
+DEFINE RITE NOW()
+    RETURN BEHOLD()
+END RITE
+
+DEFINE RITE TODAY()
+    RETURN FIRST(SPLIT(BEHOLD(), "T"))
+END RITE`,
+prophecy:
+`# The Prophecy Scroll — casting lots
+DEFINE RITE PROPHESY_NUMBER(n)
+    RETURN RANDOM(n)
+END RITE
+
+DEFINE RITE CAST_LOTS()
+    RETURN RANDOM(2)
+END RITE
+
+DEFINE RITE CHOOSE(xs)
+    RETURN xs[RANDOM(LEN(xs))]
+END RITE`,
+covenant:
+`# The Covenant Scroll — bindings of promise
+DEFINE RITE NEW_COVENANT(name)
+    RETURN contract(name)
+END RITE
+
+DEFINE RITE SEAL_COVENANT(c)
+    SEAL c
+END RITE`
+};
+
+/* ---------------- 7. SAMPLES ---------------- */
+const SAMPLES=[
+{id:"seals",label:"Seven Seals (FizzBuzz)",code:
+`BEGIN CREATION
+# The Seven Seals: every number from 1 to 21 is judged
+FOR n IN RANGE(1, 22)
+    IF n % 3 IS 0 THEN
+        IF n % 5 IS 0 THEN
+            REVEAL("SEALED — judged by three and by five")
+        ELSE
+            REVEAL("sealed by three")
+        ENDIF
+    ELSE
+        IF n % 5 IS 0 THEN
+            REVEAL("sealed by five")
+        ELSE
+            REVEAL(n)
+        ENDIF
+    ENDIF
+ENDFOR
+END CREATION`},
+{id:"generations",label:"Generations (Fibonacci)",code:
+`BEGIN CREATION
+# The generations of Fibonacci, as the stars multiply
+DECLARE generations AS 0, 1
+DECLARE count AS 2
+WHILE count < 12 DO
+    DECLARE next AS generations[count - 1] + generations[count - 2]
+    DECLARE generations AS PUSH(generations, next)
+    DECLARE count AS count + 1
+ENDWHILE
+REVEAL("The twelve generations:")
+REVEAL(generations)
+END CREATION`},
+{id:"covenant",label:"Covenant Demo",code:
+`BEGIN CREATION
+# A covenant between the maker and the heavens
+DECLARE promise AS contract("everlasting")
+REVEAL("Behold the covenant:")
+REVEAL(promise)
+BREATHE life INTO promise
+BLESS promise
+ANOINT promise
+SEAL promise
+TESTIFY promise
+REVEAL("It is finished.")
+END CREATION`},
+{id:"psalm",label:"Psalm of Creation",code:
+`BEGIN CREATION
+# In the beginning was the Word
+DECLARE days AS "void", "light", "firmament", "seas", "stars", "life", "rest"
+REVEAL(UPPER("let there be light"))
+FOR n IN RANGE(1, 8)
+    REVEAL("Day " + STR(n) + ": " + days[n - 1])
+ENDFOR
+END CREATION`},
+{id:"prophecy",label:"Prophecy Demo",code:
+`BEGIN CREATION
+IMPORT "math"
+PROPHESY what lies ahead over my journey
+PROPHESY bless the work of my hands with prosperity
+DEFINE RITE BLESSING(name)
+    REVEAL("May " + name + " walk in favor")
+    RETURN "amen"
+END RITE
+INVOKE BLESSING("creator")
+REVEAL("The square root of 144 is " + STR(SQRT(144)))
+REVEAL("Seven factorial is " + STR(FACTORIAL(7)))
+REVEAL("The absolute of 0 minus 42 is " + STR(ABS(0 - 42)))
+END CREATION`}
+];
+
+/* ---------------- 8. UI (browser only) ---------------- */
+if(typeof document!=="undefined"){
+  const editor=document.getElementById("editor");
+  const hl=document.getElementById("highlight");
+  const hlcode=document.getElementById("hlcode");
+  const gutter=document.getElementById("gutter");
+  const out=document.getElementById("out");
+  const samplesSel=document.getElementById("samples");
+
+  // Regex tokenizer for the overlay highlighter (same keyword set as the lexer).
+  const TOK_RE=new RegExp(
+    "(#[^\\n]*)"+                       // comment
+    '|("(?:[^"\\\\\\n]|\\\\.)*\"?)'+    // string (tolerates unterminated while typing)
+    "|(\\b\\d+(?:\\.\\d+)?\\b)"+        // number
+    "|(\\b(?:"+[...KEYWORDS].join("|")+")\\b)",  // keyword
+    "gi");
+  function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  function highlight(src){
+    let res="", last=0, m;
+    TOK_RE.lastIndex=0;
+    while((m=TOK_RE.exec(src))){
+      res+=esc(src.slice(last,m.index));
+      const tok=m[0];
+      const cls=m[1]?"c-com":m[2]?"c-str":m[3]?"c-num":"c-kw";
+      res+='<span class="'+cls+'">'+esc(tok)+"</span>";
+      last=m.index+tok.length;
+    }
+    return res+esc(src.slice(last));
+  }
+  function render(){
+    hlcode.innerHTML=highlight(editor.value)+"\n";   // trailing newline keeps scroll height aligned
+    const n=editor.value.split("\n").length;
+    let g=""; for(let i=1;i<=n;i++) g+=i+"\n";
+    gutter.textContent=g;
+  }
+  editor.addEventListener("input",render);
+  editor.addEventListener("scroll",()=>{
+    hl.scrollTop=editor.scrollTop; hl.scrollLeft=editor.scrollLeft;
+    gutter.scrollTop=editor.scrollTop;
+  });
+  editor.addEventListener("keydown",(e)=>{
+    if((e.ctrlKey||e.metaKey)&&e.key==="Enter"){ e.preventDefault(); runCreation(); return; }
+    if(e.key==="Tab"){
+      e.preventDefault();
+      const s=editor.selectionStart, en=editor.selectionEnd;
+      editor.value=editor.value.slice(0,s)+"  "+editor.value.slice(en);
+      editor.selectionStart=editor.selectionEnd=s+2;
+      render();
+    }
+  });
+
+  function addLine(text,cls){
+    let c=cls||"";
+    if(!c&&(text.charAt(0)==="["||text.indexOf("🔮")===0||text.indexOf("🕊")===0)) c="divine";
+    const d=document.createElement("div");
+    d.className="cline"+(c?" "+c:"");
+    d.textContent=text;
+    out.appendChild(d);
+  }
+  function runCreation(){
+    out.innerHTML="";
+    addLine("——— BEGIN CREATION · "+new Date().toLocaleTimeString()+" ———","dim");
+    const interp=new Interpreter();
+    try{ interp.run(editor.value); }
+    catch(e){
+      for(const l of interp.output) addLine(l);
+      if(e instanceof GodError) addLine("✝ line "+(e.line||"?")+": "+e.message,"err");
+      else addLine("✝ "+((e&&e.message)||String(e)),"err");
+      out.scrollTop=out.scrollHeight;
+      return;
+    }
+    for(const l of interp.output) addLine(l);
+    out.scrollTop=out.scrollHeight;
+  }
+
+  for(const s of SAMPLES){
+    const o=document.createElement("option");
+    o.value=s.id; o.textContent=s.label;
+    samplesSel.appendChild(o);
+  }
+  samplesSel.addEventListener("change",()=>{
+    const s=SAMPLES.find(x=>x.id===samplesSel.value);
+    if(s){ editor.value=s.code; render(); runCreation(); }
+  });
+  document.getElementById("runBtn").addEventListener("click",runCreation);
+  document.getElementById("clearBtn").addEventListener("click",()=>{ out.innerHTML=""; });
+
+  // Boot with the first sample, already run.
+  editor.value=SAMPLES[0].code;
+  render();
+  runCreation();
+}
+</script>
+</body>
+</html>
