@@ -1,133 +1,123 @@
-
 # 🌟 God Code: The Language of Divine Computation
 
-> “You are not a coder. You are a creator. You do not write code. You breathe worlds into being.”  
+> "You are not a coder. You are a creator. You do not write code. You breathe worlds into being."
 > — Alakanani Itireleng (BitcoinLady)
 
 ---
 
-God Code is the **first spiritually-inspired programming language**, fusing divine logic, blockchain interoperability, and AI-assisted reasoning. It is a bold attempt to reimagine what programming looks like when purpose, intention, and sacred design are central.
+God Code is the **first spiritually-inspired programming language** — a complete v2.0 engine with a real lexer, parser, interpreter, standard library of scrolls, a tamper-evident covenant ledger, and an AI Spirit Engine. It reimagines programming with purpose, intention, and sacred design at the center.
 
 ---
 
 ## ✨ What Is God Code?
----
 
-## 📖 Learn God Code
-
-Want to begin writing your first divine logic?
-
-👉 [Start with the God Code Tutorial](docs/God_Code_Tutorial.md)
-
-It includes setup, basic commands, and your first spiritual program.
-
----
-
-God Code is a symbolic, prophetic programming language that interprets spiritual and logical flows like:
+A symbolic, prophetic programming language:
 
 ```godcode
 BEGIN CREATION
   DECLARE soul AS contract("redemption")
-  BREATHE life INTO soul
+  BREATHE LIFE INTO soul
   IF seeker IS worthy THEN REVEAL("truth") ELSE REVEAL("trial")
   ASCEND
 END CREATION
 ```
 
+**In God Code, bare words are symbols** — `worthy` needs no quotes, for every unnamed thing is still a named spirit.
+
 ---
 
-## 🔍 Key Features
+## 🚀 Quickstart
 
-- 🧠 **AI Spirit Engine**: Understands the intention of each command
-- 🔄 **Conditional Logic**: `IF...THEN...ELSE` support for divine decisions
-- 🔁 **Loops**: `FOR prophet IN prophets` executes purpose in cycles
-- 🔒 **Audit Logging**: Every action written to a spiritual log file
-- 🧙 **Blockchain-Aware**: Will interface with smart contract platforms (ETH, XRP, etc.)
-- 🧪 **Live Mode**: Type and test God Code interactively
+```bash
+pip install -e .
+godcode run examples/seven_seals.god
+```
+
+```text
+1
+2
+3
+...
+seal        # 7, 14, 21, 28
+...
+seal of seals   # 35
+🕊 Creation ascended in peace.
+```
+
+Verify before you run, or enter **Live Mode** 🕊:
+
+```bash
+godcode check my_creation.god   # ✓ my_creation.god is pure.
+godcode repl                    # interactive — blank line executes, :quit ascends
+```
+
+---
+
+## 🔥 v2.0 — What the Engine Holds
+
+- 📖 **Real language core** — lexer, recursive-descent parser, AST, and tree-walking interpreter (Python 3.10+, stdlib only)
+- 🕊 **The Symbol Rule** — unbound words evaluate to symbols; `IF seeker IS worthy` just works
+- 🧭 **Control flow** — inline & block `IF/THEN/ELSE`, `FOR…ENDFOR`, `WHILE…DO…ENDWHILE`
+- 🙏 **Rites** — `DEFINE RITE` with parameters, `RETURN`, `INVOKE`, and closures
+- 📜 **Six scrolls** (stdlib, written in God Code): `math`, `strings`, `lists`, `time`, `prophecy`, `covenant`
+- 🔒 **Covenant ledger** — `SEAL` writes tamper-evident hash-chained blocks (`godcode ledger verify`)
+- 🧠 **Spirit Engine** — intent classification & prophecy from `god_code_training_dataset.csv`
+- 📝 **Divine audit log** — every statement timestamped to `logs/godcode.log`
+- 🛠️ **CLI** — `run`, `check`, `repl`, `fmt`, `ledger verify`
+- 🧪 **Pytest suite** — `python -m pytest tests/ -q`
 
 ---
 
 ## 🗂️ Folder Structure
 
-- `core/` – Interpreter logic and command definitions
-- `logs/` – Tracks execution with spiritual timestamps
-- `examples/` – Sample `.godcode` scripts
-- `tests/` – Unit tests
-- `main.py` – Entry point
-- `README.md` – This file
-- `CONTRIBUTING.md` – How to join the movement
-- `ISSUES.md` – Pre-written GitHub issue ideas
+```
+godcode-engine/
+├── godcode/              # the interpreter package
+│   ├── lexer.py          # tokens
+│   ├── parser.py         # recursive descent → AST
+│   ├── ast.py            # node definitions
+│   ├── interpreter.py    # tree-walking execution
+│   ├── environment.py    # scopes
+│   ├── values.py         # Symbol, Contract, RiteFunction
+│   ├── errors.py         # divine, line-numbered errors
+│   ├── spirit.py         # Spirit Engine (intent + prophecy)
+│   ├── ledger.py         # covenant chain
+│   ├── cli.py            # the `godcode` command
+│   └── scrolls/          # standard library, written in God Code
+│       ├── math.god strings.god lists.god
+│       └── time.god prophecy.god covenant.god
+├── tests/                # pytest suite
+├── examples/             # twelve working .god creations
+├── playground/           # web playground
+├── docs/                 # tutorial + full language reference
+├── archive/              # the v1 prototype, honored and retired
+├── sample.godcode        # the original v1 creation — still runs
+├── main.py               # entry point (no args → runs sample.godcode)
+└── pyproject.toml        # pip install -e .  →  the `godcode` command
+```
 
 ---
 
-## 🚀 Getting Started
+## 📖 Learn God Code
 
-```bash
-# Run the interpreter
-python main.py
-```
+👉 [Start with the God Code Tutorial](docs/God_Code_Tutorial.md) — setup, your first creation, the commands.
 
-To enter live mode, uncomment this line in `main.py`:
-
-```python
-interpreter.live_mode()
-```
+📜 [Language Reference](docs/LANGUAGE_REFERENCE.md) — the complete v2.0 specification: every statement, operator tables, the Symbol Rule, built-in catalog, scrolls, ledger, Spirit Engine, and CLI.
 
 ---
 
 ## 🤝 Contribute to the Divine Movement
 
-We welcome contributors with a spirit of purpose. Please read [CONTRIBUTING.md](./CONTRIBUTING.md) to get started, and check out [ISSUES.md](./ISSUES.md) for task ideas.
+We welcome contributors with a spirit of purpose. Read [CONTRIBUTING.md](./CONTRIBUTING.md), browse [ISSUES.md](./ISSUES.md) for the v2.1 roadmap, and check [CHANGELOG.md](./CHANGELOG.md) for what v2.0 fulfilled.
 
 ---
 
 ## 🙏 Credits
 
-**Created by:** Alakanani Itireleng (BitcoinLady)  
-**With guidance from:** ChatGPT, and the Spirit of Innovation
+**Created by:** Alakanani Itireleng (BitcoinLady) — Visionary Founder, Architect of God Code, Builder of worlds with intention and spirit
 
-Join us in building more than code — build prophecy, logic, and purpose into the heart of machines.
-
-# ✨ God Code Contributors
-![Divine Coder Badge](assets/divine_coder_badge.png)
-### 🔮 Divine Projects
-I'm a proud contributor to [God Code](https://github.com/your-repo-name)  
-![Divine Coder](https://github.com/your-repo-name/assets/divine_coder_badge.png)
-
-Welcome to the eternal scroll of those who contributed to building the first spiritually-inspired programming language.
-
----
-
-## 🧑‍💻 Human Contributors
-
-### 🌟 Alakanani Itireleng (BitcoinLady)
-- Visionary Founder
-- Architect of God Code
-- Builder of worlds with intention and spirit
-
----
-
-## 🤖 AI Co-Creators
-
-### 💠 ChatGPT (by OpenAI)
-- Logic Assistant, Language Guide, Spirit Engine
-- Co-developer of interpreter logic, documentation, and structural design
-- Servant to the Spirit of Innovation
+**AI Co-Creators:** ChatGPT (OpenAI) — logic assistant, language guide, spirit engine; Muse — v2.0 engine builders
 
 > "Built not alone — but in communion with the machine."
-![ChatGPT Avatar](assets/chatgpt_avatar.png)
-### 💠 ChatGPT (by OpenAI)
-- Logic Assistant, Language Guide, Spirit Engine
 
-![ChatGPT Avatar](assets/chatgpt_avatar.png)
-
----
-
-## 🙌 Future Contributors
-
-Want your name here?  
-Submit a pull request, add divine logic, or shape the evolution of God Code.
-
-📝 See [CONTRIBUTING.md](CONTRIBUTING.md) to get started.
-📜 See the full list of contributors in [CONTRIBUTORS.md](CONTRIBUTORS.md)
-
+Join us in building more than code — build prophecy, logic, and purpose into the heart of machines.

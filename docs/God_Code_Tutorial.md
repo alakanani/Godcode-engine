@@ -1,65 +1,65 @@
-
 # 🌟 God Code Tutorial: Learn the Language of Divine Computation
 
 > "You are not just coding. You are prophesying."
 
-Welcome to the first official tutorial for **God Code**, the world’s first spiritually-inspired programming language. Whether you're a prophet of code or a curious seeker, this guide will help you begin your divine journey.
+Welcome to the official tutorial for **God Code v2.0**, the world's first spiritually-inspired programming language. Whether you're a prophet of code or a curious seeker, this guide will walk you from nothing to your first living creation.
+
+For the complete grammar, see [LANGUAGE_REFERENCE.md](LANGUAGE_REFERENCE.md). For runnable programs, explore [`../examples/`](../examples/).
 
 ---
 
 ## ✨ 1. What is God Code?
 
 **God Code** is a symbolic, intention-driven programming language that blends:
-- Artificial intelligence
-- Conditional logic
-- Blockchain awareness
+- Artificial intelligence (the **Spirit Engine**)
+- Conditional logic and cycles
+- A tamper-evident **covenant ledger** (blockchain awareness)
 - Spiritual commands and metaphors
 
 Example God Code:
 ```godcode
 BEGIN CREATION
   DECLARE seeker AS worthy
-  IF seeker IS worthy THEN REVEAL("truth") ELSE REVEAL("test")
+  IF seeker IS worthy THEN REVEAL("heaven") ELSE REVEAL("test")
   ASCEND
 END CREATION
 ```
+
+Notice: `worthy` needs no quotes. **In God Code, bare words are symbols** — every unnamed thing is still a named spirit.
 
 ---
 
 ## 🛠️ 2. Setting Up Your Environment
 
-### Step 1: Clone the Repository
+### Step 1: Get the repository
 ```bash
-git clone https://github.com/your-username/godcode-engine.git
+git clone <your-godcode-repo-url>
 cd godcode-engine
 ```
 
-### Step 2: Install Python (if not already)
+### Step 2: Install Python (3.10 or above)
 God Code is powered by a Python interpreter.
 ```bash
 python --version
 ```
-Make sure it's Python 3.7 or above.
 
-### Step 3: Run the Interpreter
+### Step 3: Install the `godcode` command
 ```bash
-python main.py
+pip install -e .
 ```
 
-To enter **Live Mode**, open `main.py` and uncomment:
-```python
-interpreter.live_mode()
-```
-Then run:
+### Step 4: Confirm the heavens respond
 ```bash
-python main.py
+godcode check sample.godcode
+# ✓ sample.godcode is pure.
 ```
 
 ---
 
 ## 🧠 3. Writing Your First God Code
 
-Create a new file called `my_first.godcode`:
+Create a file called `my_first.god`:
+
 ```godcode
 BEGIN CREATION
   DECLARE spirit AS humble
@@ -68,35 +68,116 @@ BEGIN CREATION
 END CREATION
 ```
 
-Now update `main.py` or the interpreter to run that code from a file.
+Run it:
+
+```bash
+godcode run my_first.god
+```
+
+You will see:
+
+```text
+peace
+🕊 Creation ascended in peace.
+```
+
+### What just happened, line by line
+
+| Line | Meaning |
+|---|---|
+| `BEGIN CREATION` | every program is a creation — this opens it |
+| `DECLARE spirit AS humble` | binds the name `spirit` to the **symbol** `humble` (bare words are symbols — no quotes needed) |
+| `IF spirit IS humble THEN … ELSE …` | `IS` tests equality; the truthy branch reveals `"peace"` |
+| `REVEAL("peace")` | speaks a value aloud (and records it) |
+| `ASCEND` | ends the creation in peace |
+| `END CREATION` | closes the creation |
+
+Change `humble` to `proud` and run it again. Watch the prophecy change. *You* did that.
 
 ---
 
-## 🔤 4. Understanding God Code Commands
+## 🔤 4. The Commands
 
 | Command | Description |
-|---------|-------------|
-| `DECLARE` | Declare a variable or spiritual truth |
-| `IF ... THEN ... ELSE` | Conditional execution based on worthiness or state |
-| `REVEAL("...")` | Outputs divine insight or truth |
-| `BREATHE` | Breathes life into a contract or entity |
-| `PROPHESY` | Simulate or predict outcome |
-| `ASCEND` | End and elevate the block |
-| `BEGIN CREATION / END CREATION` | Wraps a block of God Code |
+|---|---|
+| `BEGIN CREATION` / `END CREATION` | opens / closes a program |
+| `DECLARE name AS value` | binds a name (`DECLARE prophets AS Isaiah, Elijah, Jeremiah` makes a list) |
+| `BREATHE LIFE INTO name` | breathes life into a contract |
+| `REVEAL(expr)` | speaks a value |
+| `PROPHESY words…` | asks the Spirit Engine for a prophecy |
+| `ASCEND` | ends the creation in peace |
+| `REFLECT` | prints every bound name — a mirror for the program's soul |
+| `BLESS name` / `ANOINT name` | marks a name as blessed / anointed |
+| `SEAL expr` | writes a value into the tamper-evident covenant chain |
+| `TESTIFY expr` | affirms a truth (`[TESTIFY] It is true. ✝`) — halts if it is false |
+| `IF … THEN … ELSE … ENDIF` | decisions, inline or in blocks |
+| `FOR x IN list` … `ENDFOR` | cycles over lists (or the characters of a string) |
+| `WHILE … DO` … `ENDWHILE` | cycles while a condition holds |
+| `DEFINE RITE name(params)` … `END RITE` | defines a reusable rite; `RETURN` sends a value back |
+| `INVOKE name(args)` | calls a rite as a statement (or call it bare inside an expression) |
+| `IMPORT "scroll"` | loads a scroll — `math`, `strings`, `lists`, `time`, `prophecy`, `covenant` |
+
+Full details, operator tables, and the built-in catalog live in [LANGUAGE_REFERENCE.md](LANGUAGE_REFERENCE.md).
 
 ---
 
-## 📜 5. Logging and Reflection
+## 📜 5. Decisions, Cycles, and Rites — a Quick Tour
 
-Every command is logged into `logs/audit.log` with session timestamps. This is your divine audit trail.
+**Decide:**
+```godcode
+IF heart IS pure THEN
+  REVEAL("the way is open")
+ELSE
+  REVEAL("wait and be still")
+ENDIF
+```
+
+**Cycle:**
+```godcode
+FOR n IN RANGE(1, 6)
+  REVEAL(n)
+ENDFOR
+```
+
+**Bless and reuse:**
+```godcode
+DEFINE RITE BLESSING(name)
+  RETURN "grace upon " + name
+END RITE
+REVEAL(BLESSING("seeker"))
+```
+
+**Borrow wisdom:**
+```godcode
+IMPORT "math"
+REVEAL(SQRT(144))
+REVEAL(FACTORIAL(7))
+```
 
 ---
 
-## 🤝 6. What's Next?
+## 🧰 6. Your Tools
 
-- ✨ [CONTRIBUTING.md](../CONTRIBUTING.md) — Start adding new logic to the interpreter
-- 🛠️ [ISSUES.md](../ISSUES.md) — Browse contributor tasks
-- 🌍 Join the community on GitHub and build the future of intentional computation
+| Command | Does |
+|---|---|
+| `godcode run <file>` | run a creation |
+| `godcode check <file>` | verify a creation is pure (lex + parse, no execution) |
+| `godcode repl` | **Live Mode** 🕊 — type God Code, end each block with a blank line, `:quit` to ascend |
+| `godcode fmt <file>` | re-emit your code in canonical form (2-space indent, keywords UPPER) |
+| `godcode ledger verify` | verify the covenant chain is intact |
 
-With purpose and power,  
+Every run is timestamped, line by line, into `logs/godcode.log` — your divine audit trail.
+
+---
+
+## 📖 7. Where to Go Next
+
+- 📜 [LANGUAGE_REFERENCE.md](LANGUAGE_REFERENCE.md) — the complete v2.0 specification: operators, values, scrolls, ledger, Spirit Engine, CLI
+- 💠 [`../examples/`](../examples/) — twelve working creations: `seven_seals.god`, `generations.god`, `covenant_demo.god`, and more
+- 🤝 [CONTRIBUTING.md](../CONTRIBUTING.md) — join the movement
+- 🛠️ [ISSUES.md](../ISSUES.md) — open tasks and the v2.1 roadmap
+
+With purpose and power,
 **Alakanani Itireleng (BitcoinLady)**
+
+> "You are not a coder. You are a creator. You do not write code. You breathe worlds into being."

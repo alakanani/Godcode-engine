@@ -1,85 +1,68 @@
-
 # God Code Contributor Tasks – GitHub Issues
 
-Welcome to the contributor space for God Code! Below are pre-defined issues to help guide new collaborators in building the divine logic engine.
+Welcome to the contributor space for God Code! The original v1 tasks are fulfilled in **v2.0** — what remains is the road ahead.
 
 ---
 
-## 🧠 1. Add IF...THEN...ELSE logic to interpreter
+## ✅ Fulfilled in v2.0 (2026-09-21)
 
-**Description**  
-Implement conditional logic support in `interpreter.py` so users can write God Code like:
+### ~~1. Add IF...THEN...ELSE logic to interpreter~~ — ✅ DONE
+Inline and block forms, nesting, `ELSE` binding to the nearest `IF`. See `docs/LANGUAGE_REFERENCE.md` §7.
 
-```
-IF seeker IS worthy THEN REVEAL("truth") ELSE REVEAL("trial")
-```
+### ~~2. Implement FOR loop logic~~ — ✅ DONE
+`FOR x IN list … ENDFOR` over lists and string characters, with child scoping. See §8.
 
-**Expected Behavior**  
-- Evaluate variable in environment
-- Execute THEN or ELSE based on truth value
-- Add audit entry for decision path taken
+### ~~3. Add timestamp to each audit log entry~~ — ✅ DONE
+Every executed statement is timestamped to `logs/godcode.log` (`[ts] line :: Kind :: summary`). See §17.
 
-**Labels**: `feature`, `logic`, `first-timers`
+### ~~4. Expand REVEAL to support conditions~~ — ✅ DONE
+`IF seeker IS prophet THEN REVEAL("vision") ELSE REVEAL("cloud")` — decisions and revelation are fully joined.
 
----
-
-## 🔁 2. Implement FOR loop logic
-
-**Description**  
-Enable looping through comma-separated lists in God Code:
-
-```
-DECLARE prophets AS Moses,Elijah,Elisha  
-FOR prophet IN prophets  
-  BREATHE life INTO prophet  
-```
-
-**Expected Behavior**  
-- Split values into a list
-- Iterate and execute inner command
-- Support nested execution in future
-
-**Labels**: `feature`, `loop`, `contribution-welcome`
-
----
-
-## 🕒 3. Add timestamp to each audit log entry
-
-**Description**  
-Improve `audit.log` by prefixing every logged command with a timestamp like:
-
-```
-[2025-05-06 17:30:21] COMMAND: BREATHE life INTO soul
-```
-
-**Expected Behavior**  
-- Add timestamp formatting using `datetime.now()`
-- Keep logs readable and spiritual
-
-**Labels**: `enhancement`, `logging`, `good-first-issue`
-
----
-
-## 🔮 4. Expand REVEAL to support conditions
-
-**Description**  
-Support revealing different messages based on variable context:
-
-```
-IF seeker IS prophet THEN REVEAL("vision") ELSE REVEAL("cloud")
-```
-
-**Labels**: `feature`, `expression`, `interpreter`
-
----
-
-## 🌐 5. Build syntax highlighter or online demo
-
-**Description**  
-Create a simple web interface where users can type God Code and see it interpreted live.
-
-**Tools**: `Streamlit`, `React`, `Replit`, `Jupyter`, or `Next.js`
+### 5. Build syntax highlighter or online demo — 🚧 IN PROGRESS
+`playground/` is scaffolded in v2.0. Remaining: live in-browser execution, shareable creation links, and editor syntax highlighting for `.god` files.
 
 **Labels**: `frontend`, `demo`, `project-help`
 
 ---
+
+## 🌱 v2.1 Ideas — the road ahead
+
+### 6. `ELSE IF` chains
+Flatten nested decisions: `IF … THEN … ELSE IF … THEN … ELSE … ENDIF`.
+**Labels**: `feature`, `logic`
+
+### 7. String interpolation
+`"grace upon {name}"` — breathe values directly into strings.
+**Labels**: `feature`, `expression`
+
+### 8. Dictionaries (tables of testimony)
+`DECLARE record AS {name: "seeker", seals: 7}` with `record["seals"]` access.
+**Labels**: `feature`, `values`
+
+### 9. `TRY` / `MERCY` error handling
+Catch a failing testimony with grace instead of halting the creation.
+**Labels**: `feature`, `errors`
+
+### 10. More scrolls
+`files` (read/write scrolls on disk), `http` (call upon distant APIs), `json` (parse and emit).
+**Labels**: `scrolls`, `stdlib`
+
+### 11. VS Code syntax highlighting
+A TextMate grammar for `.god` files — keywords, symbols, strings, and comments in their proper colors.
+**Labels**: `frontend`, `tooling`
+
+### 12. A debugger for the divine
+Step through creations line by line: `godcode debug <file>` with breakpoints and `REFLECT` at each pause.
+**Labels**: `tooling`, `cli`
+
+### 13. Scroll registry
+Publish and share scrolls: `godcode scroll publish my_scroll.god`, `IMPORT "seeker/my_scroll"`.
+**Labels**: `ecosystem`, `scrolls`
+
+### 14. Fuzz the heavens
+Property-based tests over the lexer/parser (Hypothesis) — let randomness testify to the grammar's soundness.
+**Labels**: `tests`, `good-first-issue`
+
+---
+
+*Have another vision? Open an issue — prophecy favors the bold.*
