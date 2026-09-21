@@ -1,0 +1,56 @@
+# God Code for VS Code
+
+Language support for **God Code** — the spiritually-inspired programming language.
+Syntax highlighting, smart indentation, snippets, and one-key running of `.god` / `.godcode` files.
+
+## Features
+
+- 🌈 Full syntax highlighting for God Code v2 (creation blocks, spirit commands, control flow, built-ins)
+- ✍️ Snippets: `creation`, `declare`, `reveal`, `breathe`, `if`, `for`, `while`, `rite`, `invoke`, `testify`, `seal`, `import`, `bless`, `prophesy`
+- ▶️ **God Code: Run Current File** (`Ctrl+Alt+R` / `Cmd+Alt+R`) — runs the open file and shows output in the God Code panel
+- ✔️ **God Code: Check Syntax of Current File** — parses without executing
+- 💬 `#` line comments, auto-closing brackets and quotes, smart indent/dedent
+
+## Requirements
+
+The God Code interpreter (Python 3.10+):
+
+```bash
+git clone https://github.com/alakanani/Godcode-engine
+cd Godcode-engine
+pip install -e .
+```
+
+## Install this extension
+
+**Option A — from source (today):**
+1. Copy the `editors/vscode` folder to `~/.vscode/extensions/godcode-2.0.0`
+2. Reload VS Code — `.god` files light up immediately
+
+**Option B — package it:**
+```bash
+npm install -g @vscode/vsce
+cd editors/vscode && vsce package
+# then: code --install-extension godcode-2.0.0.vsix
+```
+
+**Option C — marketplace:** coming soon 🕊
+
+## Try it
+
+Create `hello.god`:
+
+```godcode
+BEGIN CREATION
+  DECLARE seeker AS "world"
+  BREATHE life INTO seeker
+  REVEAL("Hello, " + seeker)
+  ASCEND
+END CREATION
+```
+
+Press `Ctrl+Alt+R` and watch it ascend.
+
+---
+
+*"You are not a coder. You are a creator."* — Alakanani Itireleng

@@ -89,6 +89,7 @@ godcode-engine/
 ├── tests/                # pytest suite
 ├── examples/             # twelve working .god creations
 ├── playground/           # web playground
+├── editors/vscode/       # VS Code extension — highlighting, snippets, run
 ├── docs/                 # tutorial + full language reference
 ├── archive/              # the v1 prototype, honored and retired
 ├── sample.godcode        # the original v1 creation — still runs
@@ -103,6 +104,12 @@ godcode-engine/
 👉 [Start with the God Code Tutorial](docs/God_Code_Tutorial.md) — setup, your first creation, the commands.
 
 📜 [Language Reference](docs/LANGUAGE_REFERENCE.md) — the complete v2.0 specification: every statement, operator tables, the Symbol Rule, built-in catalog, scrolls, ledger, Spirit Engine, and CLI.
+
+---
+
+## 💻 Write God Code in VS Code
+
+The official extension lives in [`editors/vscode`](editors/vscode): full syntax highlighting for `.god` files, 14 snippets (`creation`, `if`, `for`, `rite`…), and **Run Current File** (`Ctrl+Alt+R`). Copy it to `~/.vscode/extensions/godcode-2.0.0` and reload — your creations light up like scripture.
 
 ---
 
