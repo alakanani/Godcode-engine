@@ -1,0 +1,32 @@
+# The Scroll of Tongues -- words shaped, lifted up, and proclaimed.
+# Rites: SHOUT, WHISPER, WORDS, CHARS, FIRST, LAST.
+
+DEFINE RITE SHOUT(s)
+RETURN UPPER(s) + "!"
+END RITE
+
+DEFINE RITE WHISPER(s)
+RETURN LOWER(s)
+END RITE
+
+DEFINE RITE WORDS(s)
+RETURN SPLIT(s, " ")
+END RITE
+
+DEFINE RITE CHARS(s)
+DECLARE chars AS []
+DECLARE i AS 0
+WHILE i < LEN(s) DO
+DECLARE chars AS PUSH(chars, s[i])
+DECLARE i AS i + 1
+ENDWHILE
+RETURN chars
+END RITE
+
+DEFINE RITE FIRST(s)
+RETURN s[0]
+END RITE
+
+DEFINE RITE LAST(s)
+RETURN s[LEN(s) - 1]
+END RITE

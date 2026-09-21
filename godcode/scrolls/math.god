@@ -1,0 +1,64 @@
+# The Scroll of Numbers -- divine arithmetic for the children of creation.
+# Rites: SQRT, POW, ABS, MIN, MAX, FACTORIAL, IS_EVEN.
+
+DEFINE RITE SQRT(x)
+IF x IS 0 THEN
+RETURN 0
+ENDIF
+IF x < 0 THEN
+RETURN 0
+ENDIF
+DECLARE guess AS x
+WHILE ABS(guess * guess - x) > 0.000000001 DO
+DECLARE guess AS guess - (guess * guess - x) / (2 * guess)
+ENDWHILE
+RETURN guess
+END RITE
+
+DEFINE RITE POW(b, e)
+DECLARE result AS 1
+DECLARE i AS 0
+WHILE i < e DO
+DECLARE result AS result * b
+DECLARE i AS i + 1
+ENDWHILE
+RETURN result
+END RITE
+
+DEFINE RITE ABS(x)
+IF x < 0 THEN
+RETURN 0 - x
+ENDIF
+RETURN x
+END RITE
+
+DEFINE RITE MIN(a, b)
+IF a < b THEN
+RETURN a
+ENDIF
+RETURN b
+END RITE
+
+DEFINE RITE MAX(a, b)
+IF a > b THEN
+RETURN a
+ENDIF
+RETURN b
+END RITE
+
+DEFINE RITE FACTORIAL(n)
+DECLARE result AS 1
+DECLARE i AS 1
+WHILE i <= n DO
+DECLARE result AS result * i
+DECLARE i AS i + 1
+ENDWHILE
+RETURN result
+END RITE
+
+DEFINE RITE IS_EVEN(n)
+IF n % 2 IS 0 THEN
+RETURN 1
+ENDIF
+RETURN 0
+END RITE
