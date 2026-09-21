@@ -19,5 +19,3 @@ include = ["godcode*"]
 [tool.setuptools.package-data]
 godcode = ["scrolls/*.god", "scrolls/*.toml"]
 
-[tool.pytest.ini_options]
-importmode = "importlib"
