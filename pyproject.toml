@@ -3,7 +3,7 @@ requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "godcode"
+name = "godcode-engine"
 version = "4.0.0"
 description = "God Code — the language of divine computation"
 readme = "README.md"
