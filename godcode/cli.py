@@ -105,18 +105,23 @@ def _cmd_run_sandboxed(args: argparse.Namespace) -> int:
         import time as _time
 
         from godcode import agentics
+        from godcode.sandbox import run_sandboxed_with_interpreter
 
         error = None
         output: list[str] = []
+        intents: list[dict] = []
         start = _time.perf_counter()
         with contextlib.redirect_stdout(io.StringIO()):
             try:
-                output = run_sandboxed(source, policy, source_name=args.file)
+                output, interp = run_sandboxed_with_interpreter(
+                    source, policy, source_name=args.file)
+                intents = list(getattr(interp, "intent_checks", []) or [])
             except GodCodeError as err:
                 error = agentics.diagnostic(err)
         ms = int((_time.perf_counter() - start) * 1000)
         agentics.emit(agentics.run_payload(
-            args.file, error is None, output, [], error, ms))
+            args.file, error is None, output, [], error, ms,
+            intents=intents))
         return 0 if error is None else 1
     try:
         run_sandboxed(source, policy, source_name=args.file)
@@ -304,6 +309,9 @@ class CanonicalFormatter:
             rhs = self._expr(value)
         self._line(f"DECLARE {node.name} AS {rhs}")
 
+    def _stmt_DeclareIntent(self, node) -> None:  # v4.0
+        self._line(f'DECLARE INTENT "{_escape(node.text)}" ON {node.rite}')
+
     def _stmt_Breathe(self, node) -> None:
         self._line(f"BREATHE LIFE INTO {node.name}")
 
@@ -401,11 +409,15 @@ def cmd_fmt(args: argparse.Namespace) -> int:
 # ledger verify
 # ---------------------------------------------------------------------------
 def cmd_ledger_verify(args: argparse.Namespace) -> int:
+    # v4.0: verifies the covenant chain AND the anchor chain, reporting both.
+    from godcode.chain import SimulatedChainAdapter
     from godcode.ledger import CovenantLedger
 
-    ok, message = CovenantLedger(args.file).verify()
-    print(message)
-    return 0 if ok else 1
+    cov_ok, cov_message = CovenantLedger(args.file).verify()
+    anc_ok, anc_message = SimulatedChainAdapter(args.anchor_file).verify_chain()
+    print(cov_message)
+    print(anc_message)
+    return 0 if (cov_ok and anc_ok) else 1
 
 
 # --- v3: scroll commands ---
@@ -533,6 +545,49 @@ def cmd_lsp(args: argparse.Namespace) -> int:  # noqa: ARG001
     return serve()
 # --- end v3: lsp commands ---
 
+# --- v4.0: intent command ---
+def cmd_intent(args: argparse.Namespace) -> int:
+    """`godcode intent "some words" [--json]`: resolve intent via the Spirit."""
+    import json as _json
+
+    from godcode.spirit import SpiritEngine
+
+    result = SpiritEngine().resolve_intent(args.text)
+    if getattr(args, "json", False):
+        print(_json.dumps(
+            {"tool": "godcode", "command": "intent",
+             "text": args.text, "result": result},
+            ensure_ascii=False))
+        return 0
+    pct = round(result["confidence"] * 100)
+    print(f"[INTENT] The Spirit discerns: '{result['intent']}' "
+          f"({pct}% certainty).")
+    print(f"Spiritual intent: {result['spiritual_intent']}")
+    print(f"Counsel: {result['suggestion']}")
+    aligned = result.get("aligned_with") or []
+    if aligned:
+        for entry in aligned:
+            print(f"Aligned with: {entry['rite']} (\"{entry['declared']}\")")
+    else:
+        print("Aligned with no declared intent.")
+    return 0
+# --- end v4.0: intent command ---
+
+
+# --- v4.0: tools + bridge commands (implemented in godcode.tools) ---
+def cmd_tools(args: argparse.Namespace) -> int:
+    from godcode.tools import cmd_tools as _cmd_tools
+
+    return _cmd_tools(args)
+
+
+def cmd_bridge(args: argparse.Namespace) -> int:
+    from godcode.tools import cmd_bridge as _cmd_bridge
+
+    return _cmd_bridge(args)
+# --- end v4.0 ---
+
+
 # ---------------------------------------------------------------------------
 # parser assembly
 # ---------------------------------------------------------------------------
@@ -589,7 +644,33 @@ def build_parser() -> argparse.ArgumentParser:
                                      help="Verify the covenant chain")
     p_verify.add_argument("--file", default="covenant.chain", metavar="PATH",
                           help="Chain file (default: covenant.chain)")
+    # --- v4.0: the anchor chain is verified alongside the covenant chain ---
+    p_verify.add_argument("--anchor-file", default="anchors.chain",
+                          metavar="PATH",
+                          help="Anchor chain file (default: anchors.chain)")
+    # --- end v4.0 ---
     p_verify.set_defaults(func=cmd_ledger_verify)
+
+    # --- v4.0: intent, tools, bridge commands ---
+    p_intent = sub.add_parser("intent",
+                              help="Resolve the intent behind words "
+                                   "with the Spirit Engine")
+    p_intent.add_argument("text", help="Words to resolve the intent of")
+    p_intent.add_argument("--json", action="store_true",
+                          help="Emit a machine-readable JSON report on stdout")
+    p_intent.set_defaults(func=cmd_intent)
+
+    p_tools = sub.add_parser("tools",
+                             help="Show the MCP-compatible agent tool schemas")
+    p_tools.add_argument("--json", action="store_true",
+                         help="Emit the schemas as JSON")
+    p_tools.set_defaults(func=cmd_tools)
+
+    p_bridge = sub.add_parser("bridge",
+                              help="Serve the agent tool bridge "
+                                   "(JSON-RPC 2.0 over stdio)")
+    p_bridge.set_defaults(func=cmd_bridge)
+    # --- end v4.0 ---
 
     # --- v3: scroll commands ---
     _add_scroll_commands(sub)

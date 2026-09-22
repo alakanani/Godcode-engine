@@ -4,6 +4,30 @@ All notable changes to the God Code engine are recorded here, that the generatio
 
 ---
 
+## 4.0.0 — 2026-09-22
+
+> "The language is spoken. The engine is built. Now the Spirit is awake."
+
+**Intent & Chain** — the language learns to ask *why*, and to remember the answer on a chain. See `docs/WHAT_IS_NEW_IN_V4.md` for the founder's telling.
+
+### Added
+- **🕊️ Declared intent** — `DECLARE INTENT "words..." ON rite_name` names a rite's purpose in plain words; at invocation the Spirit discerns the rite's actual intent and blesses alignment (`[INTENT]`) or counsels gently on drift (`[WARNING]`) — drift can never fail a run; every check recorded in `intent_checks`, surfaced in `run --json` as an `intents` array; new Spirit Engine ministries `declare_intent` / `intents_aligned` / `resolve_intent` / `counsel`; `godcode intent "words..." [--json]`; example `examples/intent_demo.god`
+- **⚓ Blockchain-anchored seals** — new `ANCHOR(x [, chain])` built-in writes a value's hash to a tamper-evident chain and returns a receipt map `{chain, anchor_hash, height, timestamp, payload_hash}`; the default `simulated` adapter is a local genesis-anchored JSONL chain with the exact shape of a real blockchain adapter (no wallets, keys, or network calls), and real adapters can be registered later through the `ChainAdapter` interface without the language changing; `godcode ledger verify [--anchor-file PATH]` now attests both the covenant chain and the anchor chain; example `examples/anchor_demo.god`
+- **🔮 CONSULT, the local oracle** — new `CONSULT("question")` built-in lays a question before the Spirit and receives two to three sentences of counsel; entirely local, works inside the sandbox, answers gently when no Spirit is bound; example `examples/consult_demo.god`
+- **🤖 Agent tool bridge** — `godcode tools [--json]` prints six MCP-compatible tool schemas (`check`, `run`, `consult`, `intent`, `anchor_verify`, `ledger_verify`); `godcode bridge` serves them as a JSON-RPC 2.0 server over stdio (`initialize`, `ping`, `tools/list`, `tools/call`)
+- **Docs & examples** — `docs/WHAT_IS_NEW_IN_V4.md` (the v4.0 story), new §§25–28 in `docs/LANGUAGE_REFERENCE.md` (intent, anchors, oracle, bridge), `docs/agentics.md` rewritten for the shipped v4.0 (`intents` array, `intent`/`tools`/`bridge` commands), `docs/sandbox.md` notes the Spirit is now bound read-only and `ANCHOR` uses an ephemeral in-memory chain under deny-writes, root `AGENTS.md` documents the bridge workflow, and the VS Code extension highlights `INTENT`/`ANCHOR`/`CONSULT` with new snippets
+
+### Changed
+- `godcode/chain.py` (new module) holds the `ChainAdapter` interface, the `SimulatedChainAdapter`, the ephemeral `MemoryChainAdapter`, and the adapter registry
+- The sandbox now binds the Spirit (read-only dataset) so `CONSULT` and intent discernment work in guarded runs; under deny-writes, `ANCHOR` anchors on the ephemeral memory chain and writes nothing to disk
+- `TYPE(x)` of an anchor receipt is `"map"`; maps are plain dicts supporting truthiness, indexing, and `{key: value}` revelation
+- The Spirit Engine's intent classification now breaks keyword-overlap ties by vocabulary fit, so an incidental word cannot outshout the true theme
+
+### Looking ahead
+- **v4.1** — real chain adapters behind the `ChainAdapter` interface (the user's domain): wallets, RPC, and network calls stay out of the engine until the founder says otherwise
+
+---
+
 ## 3.0.0 — 2026-09-21
 
 > "The language is spoken. The engine is built. Now the foundation is strong."
@@ -20,9 +44,6 @@ All notable changes to the God Code engine are recorded here, that the generatio
 
 ### Changed
 - `LANGUAGE_REFERENCE.md` now documents the v3.0 language; the v2 language is fully backward compatible. Every v2 creation still runs.
-
-### Looking ahead
-- **v4.0 — Intent & Chain: the language agents speak.** The agentics mini-pillar made God Code legible to agents; v4.0 will make agents legible to God Code. Every agent action — a generated scroll, a fix applied from a diagnostic, an execution — becomes a sealed covenant on the ledger, hash-chained and timestamped, so an agent's *intent* is auditable end to end. The covenant chain graduates from a local JSONL file to a blockchain-anchored record: each sealed block carries a proof that can be verified without trusting the machine that ran it. Agents will not just run God Code. They will testify in it, and the ledger will remember what they meant.
 
 ---
 

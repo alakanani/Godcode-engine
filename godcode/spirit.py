@@ -49,6 +49,9 @@ class SpiritEngine:
             dataset_path = Path(__file__).resolve().parent.parent / "god_code_training_dataset.csv"
         self.dataset_path = Path(dataset_path)
         self.rows: list[dict] = self._load()
+        # v4.0 -- declared intents: rite name -> natural-language intent text,
+        # registered by DECLARE INTENT and consulted by resolve_intent().
+        self.declared_intents: dict[str, str] = {}
 
     def _load(self) -> list[dict]:
         try:
@@ -84,10 +87,19 @@ class SpiritEngine:
         words = _keywords(text)
         best: dict | None = None
         best_overlap = 0
+        best_confidence = 0.0
         for row in self.rows:
             overlap = len(words & row["keywords"])
-            if overlap > best_overlap:
-                best, best_overlap = row, overlap
+            if overlap == 0:
+                continue
+            confidence = overlap / max(1, len(row["keywords"]))
+            # Most shared keywords wins; ties go to the row whose
+            # vocabulary best explains the input (highest confidence),
+            # so an incidental word cannot outshout the true theme.
+            if overlap > best_overlap or (
+                overlap == best_overlap and confidence > best_confidence
+            ):
+                best, best_overlap, best_confidence = row, overlap, confidence
         if best is None:
             return dict(SILENT_CONTEMPLATION)
         confidence = min(1.0, best_overlap / max(1, len(best["keywords"])))
@@ -114,4 +126,55 @@ class SpiritEngine:
             f"'{dominant['intent']}', discerned with {pct}% certainty. "
             f"{dominant['spiritual_intent']} "
             f"Therefore the counsel of heaven is this: {dominant['suggestion']}"
+        )
+
+    # ------------------------------------------------- v4.0: intent layer
+
+    def declare_intent(self, rite_name: str, text: str) -> None:
+        """Register a natural-language intent on a named rite."""
+        self.declared_intents[str(rite_name)] = str(text)
+
+    def intents_aligned(self, declared: str, discerned: dict) -> bool:
+        """True when the declared intent shares a keyword with the discerned one.
+
+        *declared* is the natural-language text from DECLARE INTENT;
+        *discerned* is a classify() result for the rite's actual words.
+        The Spirit counsels on divergence; it never condemns.
+        """
+        declared_words = _keywords(declared)
+        discerned_words = (
+            _keywords(discerned.get("intent") or "")
+            | _keywords(discerned.get("spiritual_intent") or "")
+            | {str(k).lower() for k in (discerned.get("keywords") or [])}
+        )
+        return bool(declared_words & discerned_words)
+
+    def resolve_intent(self, text: str) -> dict:
+        """Classify *text* and report which declared intents it aligns with.
+
+        Returns the classify() payload plus ``aligned_with``: a list of
+        ``{rite, declared, shared_keywords}`` for every declared intent
+        sharing at least one keyword with the text.
+        """
+        result = self.classify(text)
+        words = _keywords(text)
+        aligned_with = []
+        for rite, declared in self.declared_intents.items():
+            shared = sorted(words & _keywords(declared))
+            if shared:
+                aligned_with.append(
+                    {"rite": rite, "declared": declared,
+                     "shared_keywords": shared}
+                )
+        result["aligned_with"] = aligned_with
+        return result
+
+    def counsel(self, question: str) -> str:
+        """Speak 2-3 sentences of counsel over a question, in prophesy's voice."""
+        r = self.classify(question)
+        pct = round(r["confidence"] * 100)
+        return (
+            f"Concerning '{question}', the Spirit discerns '{r['intent']}' "
+            f"with {pct}% certainty. {r['spiritual_intent']} "
+            f"Therefore the counsel of heaven is this: {r['suggestion']}"
         )

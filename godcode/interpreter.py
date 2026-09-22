@@ -23,6 +23,7 @@ from godcode.ast import (
     CallExpr,
     CreationBlock,
     Declare,
+    DeclareIntent,
     DefineRite,
     ExprStmt,
     ForLoop,
@@ -32,6 +33,7 @@ from godcode.ast import (
     Index,
     ListLiteral,
     Literal,
+    Program,
     Prophesy,
     Reflect,
     Return,
@@ -46,6 +48,7 @@ from godcode.errors import AscendSignal, GodCodeError, GodRuntimeError, ReturnSi
 from godcode.lexer import Lexer
 from godcode.parser import Parser
 from godcode import plugins
+from godcode import chain as chain_module
 from godcode.values import Contract, RiteFunction, Symbol
 
 _WHILE_ITERATION_CAP = 100_000
@@ -60,6 +63,7 @@ class Interpreter:
         ledger=None,
         log_path: str | None = "logs/godcode.log",
         interactive: bool = False,
+        chain_adapters: dict | None = None,
     ):
         self.spirit = spirit
         self.ledger = ledger
@@ -77,6 +81,15 @@ class Interpreter:
         self._plugin_verbs: dict[str, Callable[..., Any]] = {}  # namespaced verbs from plugins
         self._plugin_verb_info: dict[str, dict] = {}  # name -> {"plugin", "trusted", "func"}
         self.loaded_plugins: list[str] = []  # plugin names whose register() ran cleanly
+        # --- v4.0: intent layer + chain adapters ---
+        self.intents: dict[str, str] = {}  # rite name -> declared intent text
+        self.intent_checks: list[dict] = []  # per-invocation alignment records
+        self.chain_adapters = (
+            chain_adapters
+            if chain_adapters is not None
+            else chain_module.default_adapters()
+        )
+        # --- end v4.0 ---
         self._builtins: dict[str, Callable[..., Any]] = {
             "LEN": self._builtin_len,
             "STR": self._builtin_str,
@@ -93,6 +106,8 @@ class Interpreter:
             "BEHOLD": self._builtin_behold,
             "REVERSE": self._builtin_reverse,
             "SUMMON": self._builtin_summon,
+            "ANCHOR": self._builtin_anchor,  # v4.0
+            "CONSULT": self._builtin_consult,  # v4.0
         }
         # Pillar 3 — plugins auto-load at startup (the same path `godcode run`
         # and the REPL take).  GODCODE_NO_PLUGINS=1 disables this.
@@ -201,6 +216,8 @@ class Interpreter:
             self._exec_block(stmt.statements, env)
         elif isinstance(stmt, Declare):
             env.define(stmt.name, self._eval_expr(stmt.value, env))
+        elif isinstance(stmt, DeclareIntent):
+            self._exec_declare_intent(stmt)
         elif isinstance(stmt, Breathe):
             self._exec_breathe(stmt, env)
         elif isinstance(stmt, Reveal):
@@ -324,6 +341,49 @@ class Interpreter:
                 "The testimony has failed — what was spoken does not hold true.",
                 getattr(stmt, "line", None),
             )
+
+    # ------------------------------------------------- v4.0: intent layer
+
+    def _exec_declare_intent(self, stmt: DeclareIntent) -> None:
+        """Register a natural-language intent on a named rite."""
+        self.intents[stmt.rite] = stmt.text
+        if self.spirit is not None:
+            self.spirit.declare_intent(stmt.rite, stmt.text)
+        print(f'[INTENT] {stmt.rite} now carries the intent: "{stmt.text}" 🕊')
+        self._log(f"INTENT DECLARE :: {stmt.rite}")
+
+    def _discern_intent(self, rite: RiteFunction, declared: str) -> None:
+        """Discern a rite's actual intent and counsel on divergence.
+
+        Classifies the rite's own words with the Spirit Engine and
+        compares against the declared intent. A gentle [INTENT] notice
+        when they align, a [WARNING] when they drift. The run is never
+        failed over divergence: the Spirit counsels, it does not condemn.
+        """
+        from godcode.cli import CanonicalFormatter  # lazy: cli imports us lazily
+
+        body_text = CanonicalFormatter().format(Program(statements=rite.body))
+        discerned = self.spirit.classify(body_text)
+        aligned = self.spirit.intents_aligned(declared, discerned)
+        self.intent_checks.append(
+            {
+                "rite": rite.name,
+                "declared": declared,
+                "discerned": discerned["intent"],
+                "confidence": discerned["confidence"],
+                "aligned": aligned,
+            }
+        )
+        if aligned:
+            print(f'[INTENT] {rite.name} walks in its declared intent: "{declared}" 🕊')
+        else:
+            print(
+                f'[WARNING] {rite.name} drifts from its declared intent. '
+                f'Declared: "{declared}". '
+                f'Discerned: "{discerned["intent"]}". '
+                "The Spirit counsels; it does not condemn."
+            )
+        self._log(f"INTENT CHECK :: {rite.name} aligned={aligned}")
 
     def _exec_for(self, stmt: ForLoop, env: Environment) -> None:
         line = getattr(stmt, "line", None)
@@ -467,6 +527,22 @@ class Interpreter:
         line = getattr(expr, "line", None)
         obj = self._eval_expr(expr.obj, env)
         index = self._eval_expr(expr.index, env)
+        # --- v4.0: maps are indexed by word ---
+        if isinstance(obj, dict):
+            if not isinstance(index, str):
+                raise GodRuntimeError(
+                    f"Only words may point into a map — not {self.type_name(index)}.",
+                    line,
+                )
+            key = str(index)
+            if key not in obj:
+                known = ", ".join(obj) or "it holds nothing"
+                raise GodRuntimeError(
+                    f"The map holds no '{key}' — its keys are: {known}.",
+                    line,
+                )
+            return obj[key]
+        # --- end v4.0 ---
         if not self._is_int(index):
             raise GodRuntimeError(
                 f"Only whole numbers may point into {self.type_name(obj)} — not {self.type_name(index)}.",
@@ -608,7 +684,7 @@ class Interpreter:
 
     @staticmethod
     def _truthy(value) -> bool:
-        # False / None / 0 / "" / [] are empty; Symbols are always truthy.
+        # False / None / 0 / "" / [] / {} are empty; Symbols are always truthy.
         if value is None:
             return False
         if isinstance(value, bool):
@@ -619,7 +695,7 @@ class Interpreter:
             return value != 0
         if isinstance(value, str):
             return len(value) > 0
-        if isinstance(value, list):
+        if isinstance(value, (list, dict)):
             return len(value) > 0
         return True  # Contracts, rites, and all other living things
 
@@ -661,6 +737,12 @@ class Interpreter:
                 f"but {got} {'was' if got == 1 else 'were'} brought.",
                 line,
             )
+        # --- v4.0: intent layer — discern the rite's actual intent when it
+        # carries a declared one. Never fails the run; counsel, don't punish.
+        declared = self.intents.get(rite.name)
+        if declared is not None and self.spirit is not None:
+            self._discern_intent(rite, declared)
+        # --- end v4.0 ---
         call_env = Environment(parent=rite.closure_env)
         for param, value in zip(rite.params, args):
             call_env.define(param, value)
@@ -846,6 +928,68 @@ class Interpreter:
             )
         return verb(args[1:], line)
 
+    # ------------------------------------------------- v4.0: chain + oracle
+
+    def _builtin_anchor(self, args, line):
+        """ANCHOR(expr [, chain_name]) -- anchor a value's hash on a chain.
+
+        Returns the receipt: a map {chain, anchor_hash, height, timestamp,
+        payload_hash}. The default chain is "simulated" (a local
+        tamper-evident JSONL chain); real chain adapters register by name.
+        """
+        import hashlib
+
+        self._arity("ANCHOR", args, (1, 2), line)
+        value = args[0]
+        chain_name = chain_module.DEFAULT_CHAIN_NAME
+        if len(args) == 2:
+            name_arg = args[1]
+            if not isinstance(name_arg, str):
+                raise GodRuntimeError(
+                    "ANCHOR needs the chain's name as a word, "
+                    f"not {self.type_name(name_arg)}.",
+                    line,
+                )
+            chain_name = str(name_arg)
+        adapter = self.chain_adapters.get(chain_name)
+        if adapter is None:
+            known = ", ".join(sorted(self.chain_adapters)) or "none are bound"
+            raise GodRuntimeError(
+                f"The chain '{chain_name}' is unknown to the heavens — "
+                f"the known chains are: {known}.",
+                line,
+            )
+        payload_hash = hashlib.sha256(
+            self.stringify(value).encode("utf-8")
+        ).hexdigest()
+        receipt = adapter.anchor(payload_hash)
+        digest = str(receipt.get("anchor_hash", ""))[:8]
+        print(
+            f"[ANCHOR] Anchored on {adapter.name} · height {receipt.get('height')} "
+            f"· {digest} ⚓"
+        )
+        self._log(f"ANCHOR :: {adapter.name} height {receipt.get('height')}")
+        return receipt
+
+    def _builtin_consult(self, args, line):
+        """CONSULT("question...") -- ask the local Spirit oracle for counsel.
+
+        Returns 2-3 sentences in the voice of the Spirit Engine's prophesy.
+        No external calls: the oracle is the local engine, or a gentle
+        silence when none is bound.
+        """
+        self._arity("CONSULT", args, 1, line)
+        question = args[0]
+        if not isinstance(question, str):
+            raise GodRuntimeError(
+                "CONSULT needs a question as a word, "
+                f"not {self.type_name(question)}.",
+                line,
+            )
+        if self.spirit is None:
+            return "The Spirit is silent on this question — breathe, and ask again."
+        return self.spirit.counsel(str(question))
+
     # ------------------------------------------------------- display & typing
 
     def stringify(self, value) -> str:
@@ -862,6 +1006,12 @@ class Interpreter:
             return f"rite {value.name}"
         if isinstance(value, list):
             return "[" + ", ".join(self.stringify(item) for item in value) + "]"
+        if isinstance(value, dict):
+            # v4.0: maps (e.g. anchor receipts) reveal as {key: value, ...}.
+            inner = ", ".join(
+                f"{key}: {self.stringify(item)}" for key, item in value.items()
+            )
+            return "{" + inner + "}"
         if isinstance(value, float) and value.is_integer():
             return str(int(value))
         if isinstance(value, float) and abs(value - round(value)) < 1e-9:
@@ -871,7 +1021,7 @@ class Interpreter:
         return str(value)
 
     def type_name(self, value) -> str:
-        """The TYPE() name for a value: number/string/symbol/list/contract/rite/boolean/void."""
+        """The TYPE() name for a value: number/string/symbol/list/map/contract/rite/boolean/void."""
         if isinstance(value, bool):
             return "boolean"
         if value is None:
@@ -884,6 +1034,8 @@ class Interpreter:
             return "number"
         if isinstance(value, list):
             return "list"
+        if isinstance(value, dict):
+            return "map"  # v4.0
         if isinstance(value, Contract):
             return "contract"
         if isinstance(value, RiteFunction):
@@ -936,6 +1088,8 @@ class Interpreter:
         extra = ""
         if isinstance(stmt, Declare):
             extra = f" {stmt.name}"
+        elif isinstance(stmt, DeclareIntent):
+            extra = f" {stmt.rite}"
         elif isinstance(stmt, (Breathe, Bless, Anoint)):
             extra = f" {stmt.name}"
         elif isinstance(stmt, DefineRite):

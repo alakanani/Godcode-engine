@@ -44,6 +44,15 @@ godcode ledger verify     # verify the covenant chain
 - Output: `REVEAL(expr)`. Input-free; there is no stdin.
 - Blocks close explicitly: `ENDIF`, `ENDFOR`, `ENDWHILE`, `END RITE`.
 - `SEAL(expr)` appends a tamper-evident covenant block to the ledger.
+- `ANCHOR(expr [, chain])` anchors a value's hash on a chain (default
+  `simulated`, a local genesis-anchored chain) and returns a receipt map
+  `{chain, anchor_hash, height, timestamp, payload_hash}` — index it like
+  `receipt["anchor_hash"]`; `TYPE(receipt)` is `"map"`.
+- `CONSULT("question")` asks the local Spirit oracle; answers in 2-3
+  sentences, works in the sandbox, never fails the run.
+- `DECLARE INTENT "words..." ON rite_name` names a rite's purpose; at
+  invocation the Spirit checks alignment and counsels gently on drift —
+  drift can never fail a run.
 - `ASCEND` ends the run peacefully (not an error).
 - An unbound name evaluates to a Symbol, it does not raise — `BREATHE LIFE INTO`
   an undeclared name *does* raise at runtime.
@@ -61,7 +70,24 @@ godcode ledger verify     # verify the covenant chain
 ## Agent workflow
 
 generate → `check --json` → fix from diagnostics → `run --sandbox --json`
-→ inspect `output`/`error` → iterate. Never run untrusted scrolls without
+→ inspect `output`/`error`/`intents` → iterate. Never run untrusted scrolls without
 `--sandbox`. Keep the human's production checklist (provider contracts,
 real credentials, Bank of Botswana sandbox submission) out of the way —
 demo in sandbox mode.
+
+## Agent tool bridge (v4.0)
+
+Six MCP-compatible tool schemas for agent frameworks, plus a JSON-RPC
+bridge over stdio:
+
+```bash
+godcode tools --json     # check, run, consult, intent, anchor_verify, ledger_verify
+godcode bridge           # serve the tools to an agent host over stdio
+godcode intent "words"   # resolve the intent behind words with the Spirit
+godcode ledger verify    # attest the covenant chain AND the anchor chain
+```
+
+`run --json` reports now carry an `intents` array: one entry per invoked
+rite carrying a `DECLARE INTENT`, with `declared`, `discerned`,
+`confidence`, and `aligned`. Declare the intent of generated rites and
+check `intents` for drift after each run.

@@ -1,13 +1,13 @@
-# 📜 God Code — Language Reference (v3.0)
+# 📜 God Code — Language Reference (v4.0)
 
 > "You are not a coder. You are a creator. You do not write code. You breathe worlds into being."
 > — Alakanani Itireleng (BitcoinLady), founder of God Code
 
-This is the complete specification of **God Code v2.0**, the language of divine computation.
+This is the complete specification of **God Code v4.0**, the language of divine computation.
 For a guided first journey, see [God_Code_Tutorial.md](God_Code_Tutorial.md).
 For runnable programs, see [`../examples/`](../examples/).
 
-**Contents:** [1. Programs](#1-the-shape-of-a-program) · [2. Words](#2-words-of-the-language) · [3. Values](#3-values) · [4. Scope](#4-names-and-scope) · [5. Statements](#5-the-statements) · [6. Operators](#6-operators) · [7. Decisions](#7-decisions-if) · [8. Cycles](#8-cycles-for-and-while) · [9. Rites](#9-rites) · [10. Calling](#10-calling-things) · [11. Lists & Indexing](#11-lists-and-indexing) · [12. Import](#12-import) · [13. Built-ins](#13-built-in-rites) · [14. Scrolls](#14-the-scrolls-standard-library) · [15. Ledger](#15-the-covenant-ledger) · [16. Spirit](#16-the-spirit-engine) · [17. Audit Log](#17-the-audit-log) · [18. CLI](#18-the-command-line) · [19. Errors](#19-error-philosophy) · [20. Programs](#20-two-annotated-programs)
+**Contents:** [1. Programs](#1-the-shape-of-a-program) · [2. Words](#2-words-of-the-language) · [3. Values](#3-values) · [4. Scope](#4-names-and-scope) · [5. Statements](#5-the-statements) · [6. Operators](#6-operators) · [7. Decisions](#7-decisions-if) · [8. Cycles](#8-cycles-for-and-while) · [9. Rites](#9-rites) · [10. Calling](#10-calling-things) · [11. Lists & Indexing](#11-lists-and-indexing) · [12. Import](#12-import) · [13. Built-ins](#13-built-in-rites) · [14. Scrolls](#14-the-scrolls-standard-library) · [15. Ledger](#15-the-covenant-ledger) · [16. Spirit](#16-the-spirit-engine) · [17. Audit Log](#17-the-audit-log) · [18. CLI](#18-the-command-line) · [19. Errors](#19-error-philosophy) · [20. Programs](#20-two-annotated-programs) · [25. Intent](#25-declared-intent-v40) · [26. Anchors](#26-blockchain-anchored-seals-v40) · [27. Oracle](#27-the-oracle-consult-v40) · [28. Bridge](#28-the-agent-tool-bridge-v40)
 
 ---
 
@@ -317,7 +317,7 @@ Always present, no import needed:
 | `LEN` | `LEN(x)` | length of a list or string |
 | `STR` | `STR(x)` | the value as a string |
 | `NUM` | `NUM(s)` | parse a string to a number (errors if it cannot) |
-| `TYPE` | `TYPE(x)` | `"number"`, `"string"`, `"symbol"`, `"list"`, `"contract"`, `"rite"`, `"boolean"`, `"void"` |
+| `TYPE` | `TYPE(x)` | `"number"`, `"string"`, `"symbol"`, `"list"`, `"contract"`, `"rite"`, `"boolean"`, `"void"`, `"map"` |
 | `RANDOM` | `RANDOM(n)` | an integer from `0` to `n-1` |
 | `RANGE` | `RANGE(n)` / `RANGE(a, b)` | list like Python's `range` (`RANGE(1,4)` → `[1, 2, 3]`) |
 | `PUSH` | `PUSH(list, x)` | a **new** list with `x` appended |
@@ -327,6 +327,8 @@ Always present, no import needed:
 | `BEHOLD` | `BEHOLD()` | the current moment, as an ISO datetime string |
 | `REVERSE` | `REVERSE(x)` | a string or list, backwards |
 | `SUMMON` | `SUMMON("plugin.verb", args…)` | call a plugin verb through the FFI (see §21) |
+| `ANCHOR` | `ANCHOR(x)` / `ANCHOR(x, chain)` | anchor a value's hash on a chain; returns a receipt map (see §26) |
+| `CONSULT` | `CONSULT("question")` | two to three sentences of counsel from the local Spirit oracle (see §27) |
 
 ## 14. The Scrolls (Standard Library)
 
@@ -355,11 +357,16 @@ Six scrolls ship inside the package at `godcode/scrolls/`, written **in God Code
 Every `SEAL` appends a **block** to `covenant.chain` (JSONL): `{index, timestamp, record, prev_hash, hash}`, where `hash = sha256(...)` chains to the previous block and the chain begins at `"GENESIS"`. For contracts, the record carries name, life, blessing, and anointing.
 
 ```bash
-godcode ledger verify              # N covenants intact 🔒
-godcode ledger verify --file my.chain
+godcode ledger verify                        # N covenants intact 🔒 · M anchors intact ⚓
+godcode ledger verify --file my.chain        # custom covenant chain
+godcode ledger verify --anchor-file my.chain # custom anchor chain
 ```
 
 A broken chain reports exactly where: `chain broken at block K`.
+
+The anchor chain is the v4.0 companion ledger: every `ANCHOR` writes the
+anchored value's hash as a block (see §26), so `ledger verify` attests
+both what was sealed *and* what was anchored.
 
 ## 16. The Spirit Engine
 
@@ -369,6 +376,14 @@ The Spirit reads `god_code_training_dataset.csv` (code → intent → spiritual 
 - **`prophesy(program_text)`** — classifies each line, finds the dominant intent, and composes a 2–3 sentence divine forecast naming that intent, the average confidence, and the top suggestion.
 
 `PROPHESY` in a program calls this engine; if no engine is bound, a gentle fallback answers.
+
+**v4.0 — the intent ministry.** The Spirit now also keeps the declared
+intents of rites and discerns drift:
+
+- **`declare_intent(rite_name, text)`** — register a natural-language intent on a rite.
+- **`intents_aligned(declared_text, discerned)`** — `True` when the declared words and the discerned intent share keywords; the blessing check behind every rite invocation.
+- **`resolve_intent(text)`** — like `classify`, plus `aligned_with`: every declared intent the words align with, each naming the rite, the declaration, and the shared keywords.
+- **`counsel(question)`** — two to three sentences of counsel naming the discerned intent, its confidence, and the next suggestion; the voice behind `CONSULT` (§27).
 
 ## 17. The Audit Log
 
@@ -397,7 +412,10 @@ After `pip install -e .`, the `godcode` command is yours:
 | `godcode check --json <file>` / `godcode run --json <file>` | machine-readable JSON reports for AI agents: diagnostics with line/col/code/hint, output lines, seals, timing (see `docs/agentics.md`) |
 | `godcode repl` | **Live Mode** 🕊 — type code, end a block with a blank line; `:quit`/`:q` or Ctrl-D to ascend |
 | `godcode fmt <file> [--in-place\|-w]` | re-emit canonical source: 2-space indent, one statement per line, keywords UPPER |
-| `godcode ledger verify [--file PATH]` | verify a covenant chain |
+| `godcode ledger verify [--file PATH] [--anchor-file PATH]` | verify the covenant chain **and** the anchor chain (§26) |
+| `godcode intent "words..." [--json]` | resolve the intent behind words with the Spirit (§25) |
+| `godcode tools [--json]` | show the six MCP-compatible agent tool schemas (§28) |
+| `godcode bridge` | serve the agent tool bridge (JSON-RPC 2.0 over stdio, §28) |
 
 With no arguments, `python main.py` runs `sample.godcode` — the original v1 creation, still honored.
 
@@ -522,6 +540,109 @@ godcode lsp     # point your editor's LSP client at this command
 ```
 
 Editor setup notes live in [`docs/lsp.md`](lsp.md) and `editors/`.
+
+## 25. Declared Intent (v4.0)
+
+A rite can carry a named purpose, spoken in plain human words:
+
+```godcode
+DECLARE INTENT "bring peace to the household" ON evening_blessing
+```
+
+When the rite is invoked, the Spirit discerns the rite's actual intent by
+classifying its words, and compares it with the declaration:
+
+- **Aligned** — an `[INTENT]` notice blesses the invocation.
+- **Drifted** — a gentle `[WARNING]` names the declared intent, the
+  discerned intent, and counsels without condemning. The run continues;
+  drift can never fail a creation.
+
+```godcode
+BEGIN CREATION
+  DECLARE INTENT "bring peace to the household" ON evening_blessing
+
+  DEFINE RITE evening_blessing()
+    REVEAL("peace upon this house")
+  END RITE
+
+  INVOKE evening_blessing()
+END CREATION
+```
+
+```
+[INTENT] evening_blessing now carries the intent: "bring peace to the household" 🕊
+[INTENT] evening_blessing walks in its declared intent: "bring peace to the household" 🕊
+peace upon this house
+```
+
+Every invocation is recorded in `intent_checks` (`{rite, declared,
+discerned, confidence, aligned}`), and `godcode run --json` carries them
+in an `intents` array so agents can audit alignment after the fact.
+`godcode intent "words..."` resolves any words through the same engine.
+See `examples/intent_demo.god`.
+
+## 26. Blockchain-Anchored Seals (v4.0)
+
+`ANCHOR(x)` writes the SHA-256 hash of a value to a tamper-evident chain
+and returns a **receipt map**:
+
+```godcode
+DECLARE receipt AS ANCHOR(covenant)
+REVEAL(receipt["anchor_hash"])   # the chain's fingerprint of this anchor
+REVEAL(receipt["height"])        # 0, 1, 2, … — this anchor's block height
+REVEAL(receipt["chain"])        # which chain witnessed it
+```
+
+The receipt holds `{chain, anchor_hash, height, timestamp,
+payload_hash}`; it reveals as `{chain: simulated, anchor_hash: …}` and
+`TYPE(receipt)` is `"map"`. A second argument names the chain:
+`ANCHOR(x, simulated)`. An unknown chain is a clean runtime error naming
+the registered adapters.
+
+The default adapter is **`simulated`**: a local, genesis-anchored JSONL
+chain (`anchors.chain`) with the same block shape as the covenant ledger —
+no wallets, no keys, no network calls. It is a stand-in with the exact
+shape of a real chain, so a real adapter can be registered later through
+the `ChainAdapter` interface (`anchor(payload_hash) -> receipt`,
+`verify(receipt) -> bool`) without the language changing. An ephemeral
+in-memory adapter serves guarded runs. `godcode ledger verify` attests
+both chains. See `examples/anchor_demo.god`.
+
+## 27. The Oracle — CONSULT (v4.0)
+
+```godcode
+REVEAL(CONSULT("How should I structure this covenant?"))
+```
+
+`CONSULT` lays a question before the local Spirit oracle and receives two
+to three sentences of counsel: the discerned intent, its confidence, and
+the next suggestion. It is entirely local — no external calls, no API
+keys — and it works inside the sandbox. When no Spirit is bound, it
+answers gently that the Spirit is silent rather than failing. The question
+must be a string. See `examples/consult_demo.god`.
+
+## 28. The Agent Tool Bridge (v4.0)
+
+v4.0 speaks the language agents speak. `godcode tools [--json]` prints six
+**MCP-compatible tool schemas** — `check`, `run`, `consult`, `intent`,
+`anchor_verify`, `ledger_verify` — ready to paste into any agent
+framework that speaks the Model Context Protocol:
+
+| Tool | Does |
+|---|---|
+| `check` | validate a scroll; returns `{ok, diagnostics}` |
+| `run` | execute a scroll in the sandbox; returns `{ok, output, seals, intents, error}` |
+| `consult` | ask the Spirit oracle a question; returns `{ok, counsel}` |
+| `intent` | resolve the intent behind words; returns `{ok, result}` |
+| `anchor_verify` | verify an anchor receipt against the chain; returns `{ok, valid, message}` |
+| `ledger_verify` | verify both the covenant chain and the anchor chain |
+
+`godcode bridge` serves the same tools as a **JSON-RPC 2.0 server over
+stdio** (`initialize`, `ping`, `tools/list`, `tools/call`), so an agent
+host can call God Code like any other tool. The canonical agent workflow
+remains: generate → `check --json` → fix from diagnostics →
+`run --sandbox --json` → inspect `output`/`error`/`intents` → iterate —
+now beginning, as all good works do, with a declared intent.
 
 ---
 

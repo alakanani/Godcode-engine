@@ -225,6 +225,26 @@ class Parser:
 
     def _parse_declare(self) -> A.Declare:
         d = self._expect(TT.DECLARE)
+        # --- v4.0: DECLARE INTENT "words..." ON rite_name ---
+        # INTENT and ON are soft keywords (plain identifiers by text), so
+        # `DECLARE intent AS x` keeps working: only DECLARE followed by the
+        # word INTENT and then a quoted string takes the intent path.
+        nxt, nxt2 = self._peek(), self._peek_next()
+        if (nxt.type is TT.IDENT and nxt.value.upper() == "INTENT"
+                and nxt2.type is TT.STRING):
+            self._advance()  # the word INTENT
+            text = self._expect(TT.STRING, "the intent in quotes").value
+            on = self._peek()
+            if not (on.type is TT.IDENT and on.value.upper() == "ON"):
+                raise ParseError(
+                    'DECLARE INTENT needs ON and a rite name, as in '
+                    'DECLARE INTENT "bring peace" ON evening_blessing',
+                    line=on.line, col=on.col,
+                )
+            self._advance()  # the word ON
+            rite = self._expect(TT.IDENT, "a rite name").value
+            return A.DeclareIntent(text=text, rite=rite, line=d.line, col=d.col)
+        # --- end v4.0 ---
         name = self._expect(TT.IDENT, "a name to declare").value
         self._expect(TT.AS)
         items = [self._parse_expr()]

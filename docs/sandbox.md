@@ -70,9 +70,13 @@ guard = apply_policy(interpreter, policy)  # hooks onto an existing Interpreter
 - **Time grant** — a POSIX alarm (`setitimer`) raises the violation when
   the grant expires; a wall-clock check inside the step counter is the
   fallback on platforms without `setitimer` or outside the main thread.
-- **Host-side witnesses** — the Spirit, the covenant ledger, and the
-  audit log are left unbound in sandboxed runs, because they write to
-  the host world. Host plugin auto-loading is likewise disabled:
+- **Host-side witnesses** — the covenant ledger and the audit log are
+  left unbound in sandboxed runs, because they write to the host world.
+  Since v4.0 the **Spirit is bound read-only** (the training dataset is
+  only ever read), so `CONSULT` and intent discernment work in guarded
+  runs, and `ANCHOR` is served by an **ephemeral in-memory chain**: it is
+  never refused under the deny-writes policy, but nothing it anchors is
+  written to disk. Host plugin auto-loading is likewise disabled:
   plugin verbs are trusted host code that runs outside any policy
   (SUMMON of a loaded plugin verb bypasses the sandbox by the plugin
   system's design), so `run_sandboxed` does not breathe them in.

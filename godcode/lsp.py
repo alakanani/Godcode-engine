@@ -206,6 +206,30 @@ LSP_DOCS: dict[str, str] = {
         "Set a value under seal — it is recorded in the covenant ledger "
         "and may not be altered thereafter.\n\n```godcode\nSEAL covenant\n```"
     ),
+    # --- v4.0 ---
+    "ANCHOR": (
+        "**ANCHOR**\n\n"
+        "Anchor a value's hash on a chain: `ANCHOR(expr)` returns a receipt "
+        "map `{chain, anchor_hash, height, timestamp, payload_hash}`. "
+        "The default chain is `simulated` (a local tamper-evident chain); "
+        "a second argument names another registered chain.\n\n"
+        "```godcode\nDECLARE seal AS ANCHOR(covenant)\n```"
+    ),
+    "CONSULT": (
+        "**CONSULT**\n\n"
+        "Ask the local Spirit oracle a question; it answers with two to "
+        "three sentences of counsel. No external calls.\n\n"
+        "```godcode\nREVEAL(CONSULT(\"How should I structure this covenant?\"))\n```"
+    ),
+    "INTENT": (
+        "**INTENT**\n\n"
+        "The naming word of `DECLARE INTENT \"words...\" ON rite_name` — "
+        "it registers a natural-language intent on a rite. When the rite "
+        "is invoked, the Spirit discerns whether its words still walk in "
+        "the declared intent, and counsels gently on drift.\n\n"
+        "```godcode\nDECLARE INTENT \"bring peace\" ON evening_blessing\n```"
+    ),
+    # --- end v4.0 ---
     "TESTIFY": (
         "**TESTIFY**\n\n"
         "Bear witness to a value — affirm it before the heavens.\n\n"
@@ -438,7 +462,8 @@ def hover_markdown(word: str | None) -> str | None:
 
 _COMPLETION_KEYWORDS = sorted(LSP_DOCS)
 _BUILTINS = ("LEN", "STR", "NUM", "TYPE", "RANDOM", "RANGE", "PUSH",
-             "UPPER", "LOWER", "SPLIT", "JOIN", "ASK", "BEHOLD", "REVERSE")
+             "UPPER", "LOWER", "SPLIT", "JOIN", "ASK", "BEHOLD", "REVERSE",
+             "ANCHOR", "CONSULT")
 
 
 def completion_items() -> list[dict]:
@@ -588,7 +613,7 @@ class LanguageServer:
                 "hoverProvider": True,
                 "completionProvider": {"triggerCharacters": []},
             },
-            "serverInfo": {"name": "godcode-lsp", "version": "3.0.0"},
+            "serverInfo": {"name": "godcode-lsp", "version": "4.0.0"},
         })
 
     def _on_initialized(self, msg_id, params: dict) -> None:  # noqa: ARG002

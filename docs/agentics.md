@@ -47,6 +47,8 @@ hooks from other pillars).
 ```jsonc
 {"tool":"godcode","command":"run","file":"scroll.god","ok":true,
  "output":["42"],"seals":[{"block":0,"hash":"b9637bbd…"}],
+ "intents":[{"rite":"evening_blessing","declared":"bring peace",
+             "discerned":"Blessing of peace","confidence":0.27,"aligned":true}],
  "error":null,"stats":{"ms":1}}
 ```
 
@@ -58,6 +60,7 @@ hooks from other pillars).
 | `ok` | boolean | `true` when the run completed without a God Code error |
 | `output` | string[] | Every line printed during the run, in order — REVEAL lines plus engine notices such as `[SEAL]` and the ascension message |
 | `seals` | array | Covenant blocks sealed during this run: `{"block": <index>, "hash": <sha256 hex>}` |
+| `intents` | array | *(v4.0)* Intent checks recorded during this run: `{"rite", "declared", "discerned", "confidence", "aligned"}` — one entry per invocation of a rite carrying a `DECLARE INTENT` |
 | `error` | object \| null | On runtime failure: `{line, col, code, severity, message, hint}` (same shape as a diagnostic, minus `hint` when none); `null` on success |
 | `stats.ms` | int | Wall-clock milliseconds for lex + parse + run |
 
@@ -97,20 +100,33 @@ generate → check --json → fix from diagnostics → run --sandbox --json
 ```
 
 1. **Generate** a scroll.
-2. **Validate** with `godcode check --json`; repair every diagnostic
+2. **Declare the intent** of each rite with `DECLARE INTENT "words..." ON rite_name`
+   (v4.0) — say what the work is for, in plain words.
+3. **Validate** with `godcode check --json`; repair every diagnostic
    (the `hint` field suggests the fix).
-3. **Execute** with `godcode run --sandbox --json`; never run untrusted
+4. **Execute** with `godcode run --sandbox --json`; never run untrusted
    scrolls without `--sandbox`.
-4. **Inspect** `output`, `error`, and `seals`; iterate until `ok` is true.
+5. **Inspect** `output`, `error`, `seals`, and `intents`; iterate until `ok`
+   is true and every intent is aligned.
 
-## v4.0 — Intent & Chain: the language agents speak
+## v4.0 — Intent & Chain: the language agents speak (shipped)
 
-Mini-Pillar 5 made God Code legible to agents; v4.0 will make agents
-legible to God Code. Every agent action — a generated scroll, a fix
-applied from a diagnostic, an execution — becomes a sealed covenant on
-the ledger, hash-chained and timestamped, so an agent's *intent* is
-auditable end to end. The covenant chain graduates from a local JSONL
-file to a blockchain-anchored record: each sealed block carries a proof
-that can be verified without trusting the machine that ran it. Agents
-will not just run God Code. They will testify in it, and the ledger
-will remember what they meant.
+Mini-Pillar 5 made God Code legible to agents; v4.0 makes agents legible
+to God Code. The `run --json` report now carries an **`intents` array** —
+every rite's declared intent, the intent the Spirit discerned, the
+confidence, and whether they aligned — so an agent's *intent* is auditable
+end to end. Three new commands complete the picture:
+
+- **`godcode intent "words..." [--json]`** — resolve the intent behind any
+  words through the Spirit Engine.
+- **`godcode tools [--json]`** — six MCP-compatible tool schemas (`check`,
+  `run`, `consult`, `intent`, `anchor_verify`, `ledger_verify`) for any
+  agent framework that speaks the Model Context Protocol.
+- **`godcode bridge`** — a JSON-RPC 2.0 server over stdio
+  (`initialize`, `ping`, `tools/list`, `tools/call`) exposing those tools
+  to an agent host.
+
+Anchor receipts from `ANCHOR` can be verified after the fact with the
+`anchor_verify` tool or `godcode ledger verify`, which now attests both
+the covenant chain and the anchor chain. Agents do not just run God Code.
+They testify in it, and the ledger remembers what they meant.

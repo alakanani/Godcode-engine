@@ -2,9 +2,10 @@
 
 Runs a God Code creation under a deny-by-default :class:`SandboxPolicy`:
 every side-effecting power (scroll imports outside the consecrated paths,
-the ASK rite that speaks with the outer world, and — should such rites
-ever be added — file, network, or subprocess powers) is withheld unless
-the policy explicitly grants it. A step budget and a wall-clock grant
+the ASK rite that speaks with the outer world) is withheld unless the
+policy explicitly grants it. File-writing rites keep their meaning but
+not their reach: ANCHOR is answered with an ephemeral in-memory chain,
+so nothing is ever written to disk. A step budget and a wall-clock grant
 bound runaway creations.
 
 Entry points
@@ -47,6 +48,7 @@ __all__ = [
     "SandboxViolation",
     "apply_policy",
     "run_sandboxed",
+    "run_sandboxed_with_interpreter",
 ]
 
 
@@ -68,8 +70,10 @@ class SandboxPolicy:
         enforced should any be added.)
     ``allow_write`` / ``allow_network`` / ``allow_subprocess``
         Filesystem writes, network access, subprocess spawning. All deny
-        by default; no such rites exist in v2.0, so granting them is
-        currently a no-op recorded for future rites.
+        by default. The ANCHOR rite is the one file-writing rite: under a
+        policy that denies writes it is answered with an ephemeral
+        in-memory chain instead of being refused, so creations keep
+        their meaning without touching the disk.
     ``allow_stdin``
         Whether the ASK rite may speak with the outer world (``input()``).
         Denied by default.
@@ -120,9 +124,10 @@ class SandboxPolicy:
 # The guard
 # ---------------------------------------------------------------------------
 # Builtin rite name -> SandboxPolicy attribute that must be truthy for the
-# rite to run. God Code v2.0 has no file/network/subprocess rites, so the
-# registry currently holds only ASK; it is the extension point for future
-# side-effecting rites (e.g. "FETCH" -> "allow_network").
+# rite to run. ANCHOR is deliberately absent: under a policy that denies
+# writes it is answered with an ephemeral in-memory chain (see
+# run_sandboxed_with_interpreter), so the rite itself never reaches the
+# filesystem and needs no grant.
 _SIDE_EFFECT_RITES: dict[str, str] = {
     "ASK": "allow_stdin",
 }
@@ -304,24 +309,20 @@ def _time_limit(seconds: float | None, guard: Sandbox):
 # ---------------------------------------------------------------------------
 # High-level entry point
 # ---------------------------------------------------------------------------
-def run_sandboxed(
+def run_sandboxed_with_interpreter(
     source: str,
     policy: SandboxPolicy | None = None,
     source_name: str = "<sandbox>",
-) -> list[str]:
-    """Run God Code ``source`` under ``policy``; return captured REVEAL lines.
+) -> tuple[list[str], Any]:
+    """Run God Code ``source`` under ``policy``; return (REVEAL lines, interpreter).
 
-    Uses the strict policy when none is given. Spirit, covenant ledger,
-    and the audit log are left unbound — they write to the host world,
-    which the sandbox does not permit. Host plugin auto-loading is
-    disabled for the run (via the plugin system's own opt-out):
-    plugins are trusted host code that runs outside any policy, so a
-    deny-by-default sandbox must not breathe them in unasked.
-    Raises :class:`SandboxViolation` (a GodCodeError, line-numbered)
-    when the creation reaches beyond its grant.
+    The interpreter is returned so callers can read machine state the run
+    gathered (e.g. ``intent_checks`` for the v4.0 intent layer).
     """
     from godcode import plugins
+    from godcode.chain import MemoryChainAdapter
     from godcode.interpreter import Interpreter
+    from godcode.spirit import SpiritEngine
 
     policy = policy or SandboxPolicy.strict()
     env_var = plugins.DISABLE_ENV_VAR
@@ -334,6 +335,17 @@ def run_sandboxed(
             os.environ.pop(env_var, None)
         else:
             os.environ[env_var] = previous
+    # v4.0: the covenant ledger and the audit log stay unbound (they write
+    # to the host world, which the sandbox does not permit). The Spirit
+    # only reads its dataset, so it is bound: CONSULT and the DECLARE
+    # INTENT discernment need it. ANCHOR is answered with an ephemeral
+    # in-memory chain, so no file is ever written.
+    try:
+        interpreter.spirit = SpiritEngine()
+    except Exception:
+        pass
+    if not policy.allow_write:
+        interpreter.chain_adapters = {"simulated": MemoryChainAdapter()}
     guard = apply_policy(interpreter, policy)
     guard.started_at = time.monotonic()
     try:
@@ -348,4 +360,26 @@ def run_sandboxed(
         ) from None
     finally:
         guard.started_at = None
-    return list(interpreter.output)
+    return list(interpreter.output), interpreter
+
+
+def run_sandboxed(
+    source: str,
+    policy: SandboxPolicy | None = None,
+    source_name: str = "<sandbox>",
+) -> list[str]:
+    """Run God Code ``source`` under ``policy``; return captured REVEAL lines.
+
+    Uses the strict policy when none is given. The covenant ledger and
+    the audit log stay unbound -- they write to the host world, which
+    the sandbox does not permit. The Spirit is bound (it only reads its
+    dataset), and ANCHOR answers with an ephemeral in-memory chain, so
+    CONSULT and DECLARE INTENT work while no file is ever written. Host
+    plugin auto-loading is disabled for the run (via the plugin system's
+    own opt-out): plugins are trusted host code that runs outside any
+    policy, so a deny-by-default sandbox must not breathe them in unasked.
+    Raises :class:`SandboxViolation` (a GodCodeError, line-numbered)
+    when the creation reaches beyond its grant.
+    """
+    output, _ = run_sandboxed_with_interpreter(source, policy, source_name)
+    return output

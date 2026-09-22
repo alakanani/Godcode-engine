@@ -44,6 +44,15 @@ class Declare:
 
 
 @dataclass
+class DeclareIntent:
+    """DECLARE INTENT "words..." ON rite_name -- the v4.0 intent layer."""
+    text: str
+    rite: str
+    line: int = 1
+    col: int = 1
+
+
+@dataclass
 class Breathe:
     name: str
     line: int = 1
