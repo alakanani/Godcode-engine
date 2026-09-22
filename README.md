@@ -61,7 +61,7 @@ The language learns to ask *why*. Every rite can carry a declared intent in plai
 DECLARE INTENT "bring peace to the household" ON evening_blessing
 ```
 
-Alignment is blessed, drift is counseled gently — never punished. Plus **blockchain-anchored seals** (`ANCHOR(x)` returns a tamper-evident receipt map), the **`CONSULT`** oracle (two to three sentences of local counsel), and an **agent tool bridge** (`godcode tools`, `godcode bridge`) with six MCP-compatible tools. Every v1–v3 creation still runs.
+Alignment is blessed. Drift is counseled gently, never punished. Plus **blockchain-anchored seals** (`ANCHOR(x)` returns a tamper-evident receipt map), the **`CONSULT`** oracle (two to three sentences of local counsel), and an **agent tool bridge** (`godcode tools`, `godcode bridge`) with six MCP-compatible tools. Every v1–v3 creation still runs.
 
 Try the new examples:
 

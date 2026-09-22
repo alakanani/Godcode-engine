@@ -51,8 +51,8 @@ godcode ledger verify     # verify the covenant chain
 - `CONSULT("question")` asks the local Spirit oracle; answers in 2-3
   sentences, works in the sandbox, never fails the run.
 - `DECLARE INTENT "words..." ON rite_name` names a rite's purpose; at
-  invocation the Spirit checks alignment and counsels gently on drift —
-  drift can never fail a run.
+  invocation the Spirit checks alignment and counsels gently on drift.
+  Drift can never fail a run.
 - `ASCEND` ends the run peacefully (not an error).
 - An unbound name evaluates to a Symbol, it does not raise — `BREATHE LIFE INTO`
   an undeclared name *does* raise at runtime.

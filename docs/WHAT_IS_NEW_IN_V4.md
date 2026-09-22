@@ -21,7 +21,7 @@ END RITE
 INVOKE evening_blessing()
 ```
 
-When a rite is invoked, the Spirit discerns whether the rite's words still walk in its declared intent. Alignment is blessed with an `[INTENT]` notice. Drift is met with a gentle `[WARNING]` — never an error. The Spirit counsels; it does not condemn.
+When a rite is invoked, the Spirit discerns whether the rite's words still walk in its declared intent. Alignment is blessed with an `[INTENT]` notice. Drift is met with a gentle `[WARNING]`. Never an error. The Spirit counsels; it does not condemn.
 
 The engine exposes the same discernment to Python and to agents: `resolve_intent(text)` names the intent behind any words and lists every declared intent they align with, so a system can ask "does this action serve what I said I wanted?" before it acts.
 
@@ -36,7 +36,7 @@ DECLARE receipt AS ANCHOR(covenant)
 REVEAL(receipt["anchor_hash"])
 ```
 
-`ANCHOR(value)` writes the value's hash to a tamper-evident chain and returns a **receipt map**: `{chain, anchor_hash, height, timestamp, payload_hash}`. The default chain is `simulated` — a local, genesis-anchored chain that behaves exactly like a real blockchain adapter without wallets, keys, or network calls. Real chain adapters (Ethereum, Bitcoin, and others) can be registered later through the same `ChainAdapter` interface; the language will not need to change.
+`ANCHOR(value)` writes the value's hash to a tamper-evident chain and returns a **receipt map**: `{chain, anchor_hash, height, timestamp, payload_hash}`. The default chain is `simulated`. It is a local, genesis-anchored chain that behaves exactly like a real blockchain adapter without wallets, keys, or network calls. Real chain adapters (Ethereum, Bitcoin, and others) can be registered later through the same `ChainAdapter` interface; the language will not need to change.
 
 `godcode ledger verify` now attests both chains: the covenant chain *and* the anchor chain. An agent's intent, anchored, verified, remembered.
 
@@ -68,7 +68,7 @@ See §28 of the [Language Reference](LANGUAGE_REFERENCE.md) and the rewritten `d
 ## 🛡️ Safety, as always
 
 - The Spirit is now bound inside the sandbox (read-only), so `CONSULT` and intent discernment work in guarded runs.
-- Under the sandbox's deny-writes policy, `ANCHOR` writes to an ephemeral in-memory chain — anchored, verifiable, and gone when the run ends. Nothing touches the disk.
+- Under the sandbox's deny-writes policy, `ANCHOR` writes to an ephemeral in-memory chain. It is anchored, verifiable, and gone when the run ends. Nothing touches the disk.
 - Drift from a declared intent can never fail a run. The worst the Spirit ever does is counsel.
 
 ## ⬆️ Upgrading

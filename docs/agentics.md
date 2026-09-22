@@ -101,7 +101,7 @@ generate → check --json → fix from diagnostics → run --sandbox --json
 
 1. **Generate** a scroll.
 2. **Declare the intent** of each rite with `DECLARE INTENT "words..." ON rite_name`
-   (v4.0) — say what the work is for, in plain words.
+   (v4.0): say what the work is for, in plain words.
 3. **Validate** with `godcode check --json`; repair every diagnostic
    (the `hint` field suggests the fix).
 4. **Execute** with `godcode run --sandbox --json`; never run untrusted

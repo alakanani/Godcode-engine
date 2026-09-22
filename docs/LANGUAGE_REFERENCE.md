@@ -600,8 +600,8 @@ payload_hash}`; it reveals as `{chain: simulated, anchor_hash: …}` and
 the registered adapters.
 
 The default adapter is **`simulated`**: a local, genesis-anchored JSONL
-chain (`anchors.chain`) with the same block shape as the covenant ledger —
-no wallets, no keys, no network calls. It is a stand-in with the exact
+chain (`anchors.chain`) with the same block shape as the covenant ledger.
+No wallets, no keys, no network calls. It is a stand-in with the exact
 shape of a real chain, so a real adapter can be registered later through
 the `ChainAdapter` interface (`anchor(payload_hash) -> receipt`,
 `verify(receipt) -> bool`) without the language changing. An ephemeral
@@ -625,7 +625,7 @@ must be a string. See `examples/consult_demo.god`.
 
 v4.0 speaks the language agents speak. `godcode tools [--json]` prints six
 **MCP-compatible tool schemas** — `check`, `run`, `consult`, `intent`,
-`anchor_verify`, `ledger_verify` — ready to paste into any agent
+`anchor_verify`, `ledger_verify`, ready to paste into any agent
 framework that speaks the Model Context Protocol:
 
 | Tool | Does |
@@ -641,8 +641,8 @@ framework that speaks the Model Context Protocol:
 stdio** (`initialize`, `ping`, `tools/list`, `tools/call`), so an agent
 host can call God Code like any other tool. The canonical agent workflow
 remains: generate → `check --json` → fix from diagnostics →
-`run --sandbox --json` → inspect `output`/`error`/`intents` → iterate —
-now beginning, as all good works do, with a declared intent.
+`run --sandbox --json` → inspect `output`/`error`/`intents` → iterate.
+Now, as all good works do, the workflow begins with a declared intent.
 
 ---
 

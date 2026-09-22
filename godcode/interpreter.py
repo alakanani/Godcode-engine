@@ -987,7 +987,7 @@ class Interpreter:
                 line,
             )
         if self.spirit is None:
-            return "The Spirit is silent on this question — breathe, and ask again."
+            return "The Spirit is silent on this question. Breathe, and ask again."
         return self.spirit.counsel(str(question))
 
     # ------------------------------------------------------- display & typing
