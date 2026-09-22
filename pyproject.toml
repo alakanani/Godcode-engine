@@ -22,7 +22,7 @@ classifiers = [
 
 [project.urls]
 Homepage = "https://getgodcode.com"
-Repository = "https://github.com/alakanani/Godcode-engine"
+Repository = "https://github.com/godcodeengine/Godcode-engine"
 Documentation = "https://getgodcode.com"
 "Discord Community" = "https://discord.gg/894FEJhWfZ"
 

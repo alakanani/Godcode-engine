@@ -16,7 +16,7 @@ Syntax highlighting, smart indentation, snippets, and one-key running of `.god` 
 The God Code interpreter (Python 3.10+):
 
 ```bash
-git clone https://github.com/alakanani/Godcode-engine
+git clone https://github.com/godcodeengine/Godcode-engine
 cd Godcode-engine
 pip install -e .
 ```
