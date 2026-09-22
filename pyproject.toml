@@ -3,12 +3,28 @@ requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "godcode-engine"
+name = "godcode"
 version = "4.0.0"
 description = "God Code — the language of divine computation"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "Apache-2.0" }
+authors = [{ name = "God Code Community" }]
+keywords = ["programming-language", "interpreter", "ai", "blockchain", "dsl"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Software Development :: Interpreters",
+]
+
+[project.urls]
+Homepage = "https://getgodcode.com"
+Repository = "https://github.com/alakanani/Godcode-engine"
+Documentation = "https://getgodcode.com"
+"Discord Community" = "https://discord.gg/894FEJhWfZ"
 
 [project.scripts]
 godcode = "godcode.cli:main"
