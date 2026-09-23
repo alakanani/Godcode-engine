@@ -89,6 +89,16 @@ END CREATION</pre>
     </table>
 
     <h2>📜 4. Decisions, cycles, and rites</h2>
+    <h3>Speak with feeling</h3>
+    <div class="code-card">
+      <div class="code-head">✦ speak.god</div>
+      <pre class="code godcode">DECLARE name AS "seeker"
+DECLARE loaves AS 5
+REVEAL("grace upon {name}")
+REVEAL("{loaves} loaves feed {loaves * 1000}")
+REVEAL("a plain {{ brace }} stays a brace")</pre>
+    </div>
+    <p>Anything in <code>{braces}</code> inside a quoted string is breathed into the words: a name, a sum, a builtin rite like <code>UPPER(name)</code>. Double a brace (<code>{{</code>, <code>}}</code>) to write a plain one.</p>
     <h3>Decide</h3>
     <div class="code-card">
       <div class="code-head">✦ decide.god</div>

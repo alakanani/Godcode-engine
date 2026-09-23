@@ -198,6 +198,19 @@ class Literal:
 
 
 @dataclass
+class InterpolatedString:
+    """A string holding ``{expr}`` blessings: parts are literal text (str)
+    or expression nodes whose revealed value is breathed into the string.
+    ``source`` keeps the original string content so formatters can re-emit it.
+    """
+
+    parts: list = field(default_factory=list)  # list[str | Expr]
+    source: str = ""
+    line: int = 1
+    col: int = 1
+
+
+@dataclass
 class Identifier:
     name: str
     line: int = 1

@@ -42,6 +42,7 @@ godcode ledger verify     # verify the covenant chain
 - Comparisons use `IS` / `IS NOT` (`==`/`!=` also work). Assignment is `DECLARE x AS …`.
 - Keywords are case-insensitive; canonical style is UPPER.
 - Output: `REVEAL(expr)`. Input-free; there is no stdin.
+- Strings breathe values in: `"grace upon {name}"` interpolates any expression (`{a * b}`, `{UPPER(name)}`); `{{` and `}}` write a plain brace.
 - Blocks close explicitly: `ENDIF`, `ENDFOR`, `ENDWHILE`, `END RITE`.
 - `SEAL(expr)` appends a tamper-evident covenant block to the ledger.
 - `ANCHOR(expr [, chain])` anchors a value's hash on a chain (default

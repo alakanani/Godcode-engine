@@ -30,6 +30,7 @@ from __future__ import annotations
 
 from . import ast as A
 from .errors import ParseError
+from .lexer import Lexer
 from .tokens import Token, TokenType
 
 TT = TokenType
@@ -467,8 +468,13 @@ class Parser:
     def _parse_primary(self):
         t = self._peek()
         tt = t.type
-        if tt is TT.NUMBER or tt is TT.STRING:
+        if tt is TT.NUMBER:
             self._advance()
+            return A.Literal(value=t.value, line=t.line, col=t.col)
+        if tt is TT.STRING:
+            self._advance()
+            if "{" in t.value or "}}" in t.value:
+                return self._parse_interpolated(t)
             return A.Literal(value=t.value, line=t.line, col=t.col)
         if tt is TT.TRUE:
             self._advance()
@@ -514,6 +520,99 @@ class Parser:
             f"Expected a value or name but found {self._describe(t)}",
             line=t.line, col=t.col,
         )
+
+    # -- string interpolation: "grace upon {name}" ----------------------------
+
+    def _parse_interpolated(self, tok):
+        """Build an InterpolatedString from a STRING token's value.
+
+        ``{expr}`` breathes the expression's revealed value into the string;
+        ``{{`` and ``}}`` write a plain brace; a lone ``}`` stays a plain brace.
+        """
+        src = tok.value
+        parts: list = []
+        buf: list[str] = []
+        i, n = 0, len(src)
+        while i < n:
+            ch = src[i]
+            if ch == "{" and src[i + 1 : i + 2] == "{":
+                buf.append("{")
+                i += 2
+                continue
+            if ch == "}" and src[i + 1 : i + 2] == "}":
+                buf.append("}")
+                i += 2
+                continue
+            if ch == "{":
+                end = self._find_interpolation_end(src, i, tok)
+                inner = src[i + 1 : end]
+                if not inner.strip():
+                    raise ParseError(
+                        "empty braces breathe nothing into the string; "
+                        "place a name or an expression between '{' and '}', "
+                        "or write '{{}}' for plain braces",
+                        line=tok.line, col=tok.col + i,
+                    )
+                if buf:
+                    parts.append("".join(buf))
+                    buf = []
+                parts.append(self._parse_braced_expr(inner, tok, i))
+                i = end + 1
+                continue
+            buf.append(ch)
+            i += 1
+        if buf:
+            parts.append("".join(buf))
+        return A.InterpolatedString(parts=parts, source=src,
+                                    line=tok.line, col=tok.col)
+
+    @staticmethod
+    def _find_interpolation_end(src: str, start: int, tok) -> int:
+        """Index of the ``}`` closing the ``{`` at ``start``.
+
+        Nested braces count toward the depth, and braces inside a quoted
+        string are skipped, so ``"{greet("hi {name}")}"`` seals correctly.
+        """
+        depth = 0
+        in_string = False
+        i, n = start, len(src)
+        while i < n:
+            c = src[i]
+            if in_string:
+                if c == "\\":
+                    i += 2
+                    continue
+                if c == '"':
+                    in_string = False
+            elif c == '"':
+                in_string = True
+            elif c == "{":
+                depth += 1
+            elif c == "}":
+                depth -= 1
+                if depth == 0:
+                    return i
+            i += 1
+        raise ParseError(
+            "an opening '{' breathes a blessing that was never sealed; "
+            "close it with '}' or write '{{' for a plain brace",
+            line=tok.line, col=tok.col + start,
+        )
+
+    def _parse_braced_expr(self, inner: str, tok, offset: int):
+        """Parse the text between one pair of braces as a single expression."""
+        tokens = [t for t in Lexer(inner).lex()
+                  if t.type not in (TT.NEWLINE, TT.EOF)]
+        tokens.append(Token(TT.EOF, "", tok.line, tok.col + offset))
+        sub = Parser(tokens)
+        expr = sub._parse_expr()
+        if not sub._check(TT.EOF):
+            raise ParseError(
+                "the blessing between '{' and '}' could not be understood; "
+                "only one expression may dwell there",
+                line=tok.line, col=tok.col + offset,
+            )
+        return expr
 
     def _parse_args(self) -> list:
         args = []

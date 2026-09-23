@@ -271,6 +271,8 @@ class CanonicalFormatter:
             return f"NOT {inner}" if node.op == "not" else f"-{inner}"
         if kind == "Literal":
             return self._literal(node.value)
+        if kind == "InterpolatedString":
+            return f'"{_escape(node.source)}"'
         if kind == "Identifier":
             return node.name
         if kind == "ListLiteral":

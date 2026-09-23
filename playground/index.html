@@ -150,7 +150,7 @@ function lex(source){
           if(c==='"'){ closed=true; i++; break; }
           s+=c; i++;
         }
-        if(!closed) throw new GodError("Unterminated string — every word must be sealed with a closing quote.", ln+1, sc);
+        if(!closed) throw new GodError("Unterminated string. Every word must be sealed with a closing quote.", ln+1, sc);
         tokens.push({type:"STRING", value:s, line:ln+1, col:sc});
         col=i; continue;
       }
@@ -427,8 +427,12 @@ class Parser{
   parsePrimary(){
     const t=this.peek();
     switch(t.type){
-      case "NUMBER": case "STRING":
+      case "NUMBER":
         this.next(); return {kind:"Literal", value:t.value, line:t.line};
+      case "STRING":
+        this.next();
+        if(t.value.includes("{")||t.value.includes("}}")) return this.parseInterp(t);
+        return {kind:"Literal", value:t.value, line:t.line};
       case "TRUE":  this.next(); return {kind:"Literal", value:true, line:t.line};
       case "FALSE": this.next(); return {kind:"Literal", value:false, line:t.line};
       case "IDENT":
@@ -451,6 +455,43 @@ class Parser{
       default:
         throw new GodError("Unexpected '"+t.value+"' — a value was expected here (a number, \"word\", name, or list).", t.line, t.col);
     }
+  }
+  // "grace upon {name}": {expr} breathes a value into the words; {{ and }} write a plain brace.
+  parseInterp(t){
+    const src=t.value, parts=[]; let buf="", i=0; const n=src.length;
+    while(i<n){
+      const ch=src[i];
+      if(ch==="{"&&src[i+1]==="{"){ buf+="{"; i+=2; continue; }
+      if(ch==="}"&&src[i+1]==="}"){ buf+="}"; i+=2; continue; }
+      if(ch==="{"){
+        const end=this.interpEnd(src,i,t);
+        const inner=src.slice(i+1,end);
+        if(!inner.trim()) throw new GodError("empty braces breathe nothing into the string. Place a name or an expression between '{' and '}', or write '{{}}' for plain braces.", t.line);
+        if(buf){ parts.push(buf); buf=""; }
+        const toks=lex(inner).filter(x=>x.type!=="NEWLINE"&&x.type!=="EOF");
+        toks.push({type:"EOF", value:"", line:t.line, col:1});
+        const sub=new Parser(toks);
+        const e=sub.parseExpr();
+        if(sub.peek().type!=="EOF") throw new GodError("the blessing between '{' and '}' could not be understood. Only one expression may dwell there.", t.line);
+        parts.push(e);
+        i=end+1; continue;
+      }
+      buf+=ch; i++;
+    }
+    if(buf) parts.push(buf);
+    return {kind:"Interp", parts, line:t.line};
+  }
+  interpEnd(src,start,t){
+    let depth=0, inStr=false, i=start; const n=src.length;
+    while(i<n){
+      const c=src[i];
+      if(inStr){ if(c==="\\"){ i+=2; continue; } if(c==='"') inStr=false; }
+      else if(c==='"') inStr=true;
+      else if(c==="{") depth++;
+      else if(c==="}"){ depth--; if(depth===0) return i; }
+      i++;
+    }
+    throw new GodError("an opening '{' breathes a blessing that was never sealed. Close it with '}' or write '{{' for a plain brace.", t.line);
   }
 }
 
@@ -718,6 +759,7 @@ class Interpreter{
   eval(n,env){
     switch(n.kind){
       case "Literal": return n.value;
+      case "Interp":  return n.parts.map(p=>typeof p==="string"?p:stringify(this.eval(p,env))).join("");
       case "Ident":   return env.get(n.name);
       case "List":    return n.items.map(i=>this.eval(i,env));
       case "Index":   return this.evalIndex(n,env);
@@ -978,7 +1020,7 @@ const SAMPLES=[
 FOR n IN RANGE(1, 22)
     IF n % 3 IS 0 THEN
         IF n % 5 IS 0 THEN
-            REVEAL("SEALED — judged by three and by five")
+            REVEAL("SEALED. judged by three and by five")
         ELSE
             REVEAL("sealed by three")
         ENDIF
@@ -1039,7 +1081,17 @@ INVOKE BLESSING("creator")
 REVEAL("The square root of 144 is " + STR(SQRT(144)))
 REVEAL("Seven factorial is " + STR(FACTORIAL(7)))
 REVEAL("The absolute of 0 minus 42 is " + STR(ABS(0 - 42)))
-END CREATION`}
+END CREATION`},
+{id:"interp",label:"Speaking with Feeling (Interpolation)",code:
+`BEGIN CREATION
+# {words} inside a string breathe values into the telling
+DECLARE name AS "seeker"
+DECLARE loaves AS 5
+REVEAL("grace upon {name}")
+REVEAL("{loaves} loaves feed {loaves * 1000}")
+REVEAL("shouted: {UPPER(name)}")
+REVEAL("a plain {{ brace }} stays a brace")
+END CREATION`},
 ];
 
 /* ---------------- 8. UI (browser only) ---------------- */

@@ -4,6 +4,17 @@ All notable changes to the God Code engine are recorded here, that the generatio
 
 ---
 
+## Unreleased
+
+### Added
+- **💬 String interpolation** — `{expr}` inside a double-quoted string breathes the expression's revealed value into the words: `"grace upon {name}"`, `"{loaves} loaves feed {loaves * 1000}"`, `"shouted: {UPPER(name)}"`. Any expression may dwell between the braces, including nested interpolated strings. `{{` and `}}` write a plain brace; a lone `}` stays as it is. A brace that is never closed, or braces with nothing between them, raise a gentle parse error that names the line. Works in the sandbox, in rites, and in `godcode fmt` (which round-trips interpolated strings untouched). New example `examples/interpolation_demo.god`; new `### Breathing values into strings` in `docs/LANGUAGE_REFERENCE.md` §3; a "Speak with feeling" lesson on the site learn page; and the in-browser playground now runs interpolation too, with a new "Speaking with Feeling" sample
+- **Agent gotcha** — repo `AGENTS.md` notes the interpolation rule so agents generating God Code use it correctly
+
+### Changed
+- New `InterpolatedString` AST node (`godcode/ast.py`); the parser builds it from any `STRING` token containing `{` or `}}` (plain strings are untouched `Literal`s); the interpreter renders each part with the same `stringify` as `REVEAL`. Note: a string that previously contained a literal `{` now needs `{{` — the pre-launch language is still young enough for this to be safe
+
+---
+
 ## 4.0.0 — 2026-09-22
 
 > "The language is spoken. The engine is built. Now the Spirit is awake."

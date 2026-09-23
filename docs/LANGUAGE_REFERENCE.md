@@ -39,7 +39,7 @@ Statements live one per line (the inline `IF` form is the one exception. See §7
 | Value | Example | Notes |
 |---|---|---|
 | number | `3`, `4.5` | int or float |
-| string | `"peace"` | double-quoted, with escapes |
+| string | `"peace"` | double-quoted, with escapes and `{expr}` interpolation |
 | **symbol** | `worthy` | any bare word — see the Symbol Rule |
 | boolean | *(from comparisons)* | there are no `true`/`false` literals; `1 < 2` yields one |
 | list | `[1, two, "three"]` | ordered, mixed types allowed |
@@ -72,6 +72,19 @@ Symbols are always truthy, and compare by their text: `worthy IS worthy` is true
 | list | `[1, two, three]` |
 | contract | `contract("everlasting")` |
 | void | `void` |
+
+### Breathing values into strings
+
+Wrap any expression in braces inside a double-quoted string and its revealed value is breathed into the words:
+
+```godcode
+DECLARE name AS "seeker"
+REVEAL("grace upon {name}")            # grace upon seeker
+REVEAL("{2 + 3} loaves")               # 5 loaves
+REVEAL("shouted: {UPPER(name)}")       # shouted: SEEKER
+```
+
+The braces may hold any expression: names, arithmetic, comparisons, builtin rites like `UPPER` and `LEN`, even another interpolated string in escaped quotes (`"nested {\"inner {n}\"}"`). To write a plain brace, double it: `"{{"` and `"}}"` become `{` and `}`. A lone `}` stays as it is. An opening brace that is never closed is a gentle parse error, and it names the line.
 
 ### Truthiness
 

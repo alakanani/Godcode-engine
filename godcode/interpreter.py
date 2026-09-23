@@ -31,6 +31,7 @@ from godcode.ast import (
     IfStmt,
     Import,
     Index,
+    InterpolatedString,
     ListLiteral,
     Literal,
     Program,
@@ -505,6 +506,12 @@ class Interpreter:
         line = getattr(expr, "line", None)
         if isinstance(expr, Literal):
             return expr.value
+        if isinstance(expr, InterpolatedString):
+            return "".join(
+                part if isinstance(part, str)
+                else self.stringify(self._eval_expr(part, env))
+                for part in expr.parts
+            )
         if isinstance(expr, Identifier):
             return env.get(expr.name)
         if isinstance(expr, ListLiteral):
