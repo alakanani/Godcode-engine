@@ -7,10 +7,81 @@
  *   GET  /v1/scrolls/:name
  *   GET  /v1/scrolls/:name/download
  *   GET  /v1/scrolls/:name/versions/:version
+ *
+ * Security (v1.1.0):
+ * - Per-IP rate limiting backed by D1 (read + publish buckets).
+ * - Request body size cap; strict field validation; control chars stripped.
+ * - Timing-safe bearer token comparison.
+ * - Hardened response headers on every response.
  */
 
 const NAME_RE = /^[a-z0-9][a-z0-9-]{1,62}$/;
 const VER_RE = /^[0-9]+\.[0-9]+\.[0-9]+$/;
+const MAX_BODY = 600 * 1024; // 600KB total request body cap
+const MAX_CODE = 500 * 1024; // 500KB scroll code cap
+
+const RATE = {
+  read: { limit: 120, windowSec: 60 },   // 120 reads/min per IP
+  publish: { limit: 10, windowSec: 60 }, // 10 publishes/min per IP
+};
+
+const SEC_HEADERS = {
+  "x-content-type-options": "nosniff",
+  "x-frame-options": "DENY",
+  "referrer-policy": "no-referrer",
+};
+
+function clientIp(request) {
+  return request.headers.get("cf-connecting-ip") || "unknown";
+}
+
+// Timing-safe string comparison for the bearer token.
+function safeEqual(a, b) {
+  a = String(a);
+  b = String(b);
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+function stripControls(s) {
+  return String(s).replace(/[\u0000-\u001F\u007F]/g, "");
+}
+
+async function rateLimited(env, ip, bucket) {
+  const cfg = RATE[bucket];
+  const windowStart = Math.floor(Date.now() / (cfg.windowSec * 1000));
+  try {
+    await env.DB.prepare(
+      `CREATE TABLE IF NOT EXISTS rate_limits (
+         ip TEXT, bucket TEXT, window_start INTEGER, count INTEGER,
+         PRIMARY KEY (ip, bucket, window_start)
+       )`
+    ).run();
+    // Best-effort cleanup of stale windows.
+    await env.DB.prepare(`DELETE FROM rate_limits WHERE window_start < ?`)
+      .bind(windowStart - 2).run();
+    const row = await env.DB.prepare(
+      `SELECT count FROM rate_limits WHERE ip = ? AND bucket = ? AND window_start = ?`
+    ).bind(ip, bucket, windowStart).first();
+    const count = row ? row.count : 0;
+    if (count >= cfg.limit) return true;
+    if (row) {
+      await env.DB.prepare(
+        `UPDATE rate_limits SET count = count + 1 WHERE ip = ? AND bucket = ? AND window_start = ?`
+      ).bind(ip, bucket, windowStart).run();
+    } else {
+      await env.DB.prepare(
+        `INSERT INTO rate_limits (ip, bucket, window_start, count) VALUES (?, ?, ?, 1)`
+      ).bind(ip, bucket, windowStart).run();
+    }
+    return false;
+  } catch (e) {
+    // If rate limiting itself fails, fail open so the registry stays up.
+    return false;
+  }
+}
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -20,12 +91,22 @@ function json(data, status = 200) {
       "access-control-allow-origin": "*",
       "access-control-allow-methods": "GET,POST,OPTIONS",
       "access-control-allow-headers": "content-type,authorization",
+      ...SEC_HEADERS,
     },
   });
 }
 
 function err(message, status = 400) {
-  return json({ ok: false, error: message }, status);
+  const headers = { "retry-after": "60" };
+  return new Response(JSON.stringify({ ok: false, error: message }), {
+    status,
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+      "access-control-allow-origin": "*",
+      ...SEC_HEADERS,
+      ...(status === 429 ? headers : {}),
+    },
+  });
 }
 
 export default {
@@ -34,8 +115,14 @@ export default {
 
     if (request.method === "OPTIONS") return json({ ok: true });
 
+    // Rate limit every request before doing any work.
+    const bucket = request.method === "POST" ? "publish" : "read";
+    if (await rateLimited(env, clientIp(request), bucket)) {
+      return err("Too many requests, slow down a little", 429);
+    }
+
     if (url.pathname === "/" || url.pathname === "/health") {
-      return json({ ok: true, service: "godcode-scroll-registry", version: "1.0.0" });
+      return json({ ok: true, service: "godcode-scroll-registry", version: "1.1.0" });
     }
 
     const parts = url.pathname.split("/").filter(Boolean);
@@ -44,7 +131,7 @@ export default {
     try {
       // GET /v1/scrolls?q=&limit=&offset=
       if (parts.length === 2 && request.method === "GET") {
-        const q = (url.searchParams.get("q") || "").trim();
+        const q = (url.searchParams.get("q") || "").trim().slice(0, 100);
         const limit = Math.min(Math.max(parseInt(url.searchParams.get("limit") || "50", 10) || 50, 1), 100);
         const offset = Math.max(parseInt(url.searchParams.get("offset") || "0", 10) || 0, 0);
         let rows;
@@ -68,19 +155,26 @@ export default {
       // POST /v1/scrolls  (publish, needs bearer token)
       if (parts.length === 2 && request.method === "POST") {
         const auth = request.headers.get("authorization") || "";
-        if (!env.PUBLISH_TOKEN || auth !== `Bearer ${env.PUBLISH_TOKEN}`) {
+        if (!env.PUBLISH_TOKEN || !safeEqual(auth, `Bearer ${env.PUBLISH_TOKEN}`)) {
           return err("Unauthorized", 401);
         }
-        const body = await request.json().catch(() => null);
-        if (!body) return err("Invalid JSON body");
-        const name = String(body.name || "").toLowerCase().trim();
-        const version = String(body.version || "").trim();
+
+        const declared = parseInt(request.headers.get("content-length") || "0", 10);
+        if (declared > MAX_BODY) return err("Request too large", 413);
+        const text = await request.text().catch(() => null);
+        if (text === null || text.length > MAX_BODY) return err("Request too large", 413);
+        let body = null;
+        try { body = JSON.parse(text); } catch (e) { body = null; }
+        if (!body || typeof body !== "object") return err("Invalid JSON body");
+
+        const name = stripControls(String(body.name || "")).toLowerCase().trim();
+        const version = stripControls(String(body.version || "")).trim();
         const code = String(body.code || "");
-        const description = String(body.description || "").slice(0, 500);
-        const author = String(body.author || "").slice(0, 120);
+        const description = stripControls(String(body.description || "")).slice(0, 500);
+        const author = stripControls(String(body.author || "")).slice(0, 120);
         if (!NAME_RE.test(name)) return err("Invalid scroll name (lowercase letters, numbers, hyphens)");
         if (!VER_RE.test(version)) return err("Invalid version (use x.y.z)");
-        if (!code || code.length > 500000) return err("Code is required (max 500KB)");
+        if (!code || code.length > MAX_CODE) return err("Code is required (max 500KB)");
 
         let scroll = await env.DB.prepare("SELECT id FROM scrolls WHERE name = ?").bind(name).first();
         if (!scroll) {
@@ -104,7 +198,7 @@ export default {
         return json({ ok: true, name, version }, 201);
       }
 
-      const name = (parts[2] || "").toLowerCase();
+      const name = stripControls(parts[2] || "").toLowerCase();
       if (!NAME_RE.test(name)) return err("Invalid scroll name", 404);
       const scroll = await env.DB.prepare("SELECT * FROM scrolls WHERE name = ?").bind(name).first();
       if (!scroll) return err("Scroll not found", 404);
@@ -140,13 +234,15 @@ export default {
             "content-type": "text/plain; charset=utf-8",
             "access-control-allow-origin": "*",
             "content-disposition": `attachment; filename="${scroll.name}.god"`,
+            ...SEC_HEADERS,
           },
         });
       }
 
       // GET /v1/scrolls/:name/versions/:version
       if (parts.length === 5 && parts[3] === "versions" && request.method === "GET") {
-        const ver = parts[4];
+        const ver = stripControls(parts[4]);
+        if (!VER_RE.test(ver)) return err("Invalid version", 404);
         const row = await env.DB.prepare(
           "SELECT version, code, created_at FROM versions WHERE scroll_id = ? AND version = ?"
         ).bind(scroll.id, ver).first();

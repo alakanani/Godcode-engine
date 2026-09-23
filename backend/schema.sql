@@ -18,3 +18,11 @@ CREATE TABLE IF NOT EXISTS versions (
 );
 
 CREATE INDEX IF NOT EXISTS idx_versions_scroll ON versions(scroll_id);
+
+CREATE TABLE IF NOT EXISTS rate_limits (
+  ip TEXT NOT NULL,
+  bucket TEXT NOT NULL,
+  window_start INTEGER NOT NULL,
+  count INTEGER NOT NULL DEFAULT 1,
+  PRIMARY KEY (ip, bucket, window_start)
+);

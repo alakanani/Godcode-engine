@@ -16,6 +16,20 @@ Public read API. Publishing requires the `PUBLISH_TOKEN` secret.
 - `GET /v1/scrolls/:name/download` — download the latest version as a `.god` file.
 - `GET /v1/scrolls/:name/versions/:version` — one specific version with its code.
 
+## Security
+
+- Publishing is locked behind the `PUBLISH_TOKEN` secret (timing-safe
+  comparison). Reading is public, like npm or PyPI.
+- Per-IP rate limiting in the Worker, backed by D1 (`rate_limits` table):
+  120 reads/minute, 10 publishes/minute. Abusers get HTTP 429.
+- Request bodies are capped (600KB total, 500KB scroll code). Field lengths
+  are enforced and control characters are stripped from text fields.
+- Every response carries hardened headers (`nosniff`, `DENY` framing,
+  `no-referrer`).
+- Cloudflare edge protection: a WAF custom rule ("Allow API clients") skips
+  bot challenges on `api.getgodcode.com` so real API clients and CLIs are
+  never blocked; the main site keeps full bot protection.
+
 ## Files
 
 - `worker.js` — the Worker source (deployed as `godcode-registry`).
