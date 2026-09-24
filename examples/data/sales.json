@@ -1,0 +1,58 @@
+[
+  {
+    "id": 1,
+    "item": "Maize Flour",
+    "qty": 20,
+    "price": 45.5,
+    "region": "Gaborone"
+  },
+  {
+    "id": 2,
+    "item": "Sunflower Oil",
+    "qty": 12,
+    "price": 89.99,
+    "region": "Francistown"
+  },
+  {
+    "id": 3,
+    "item": "Sugar Beans",
+    "qty": 30,
+    "price": 32.75,
+    "region": "Maun"
+  },
+  {
+    "id": 4,
+    "item": "Millet",
+    "qty": 15,
+    "price": 28.0,
+    "region": "Gaborone"
+  },
+  {
+    "id": 5,
+    "item": "Cooking Oil",
+    "qty": 8,
+    "price": 99.5,
+    "region": "Francistown"
+  },
+  {
+    "id": 6,
+    "item": "Sorghum",
+    "qty": 25,
+    "price": 35.25,
+    "region": "Maun"
+  },
+  {
+    "id": 7,
+    "item": "Rice",
+    "qty": 18,
+    "price": 62.0,
+    "region": "Gaborone"
+  },
+  {
+    "id": 8,
+    "item": "Peanuts",
+    "qty": 10,
+    "price": 55.75,
+    "region": "Maun"
+  }
+]
