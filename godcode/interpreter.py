@@ -43,6 +43,7 @@ from godcode.ast import (
     Reveal,
     SealStmt,
     Testify,
+    TryStmt,
     UnaryOp,
     WhileLoop,
 )
@@ -89,6 +90,14 @@ class Interpreter:
         self._import_stack: list[str] = []  # scrolls currently being run
         self._last_source: str = ""
         self._log_handle: Any = None
+        # --- v5.2: runtime call stack ---
+        # A lightweight list of {"rite": name, "line": call-site line},
+        # pushed in _call_rite and popped as rites return (or raise). It
+        # powers the "Called by ..." trace for uncaught errors and is
+        # separate from the debugger's own frame list (which only exists
+        # while a DebugSession is attached).
+        self.call_stack: list[dict] = []
+        # --- end v5.2 ---
         self._plugin_verbs: dict[str, Callable[..., Any]] = {}  # namespaced verbs from plugins
         self._plugin_verb_info: dict[str, dict] = {}  # name -> {"plugin", "trusted", "func"}
         self.loaded_plugins: list[str] = []  # plugin names whose register() ran cleanly
@@ -175,6 +184,7 @@ class Interpreter:
         """Execute a parsed Program. ASCEND ends the run in peace."""
         self._imported = set()
         self._import_stack = []
+        self.call_stack = []  # fresh trace for every run
         if self._looks_like_file(source_name):
             self.source_dir = Path(source_name).resolve().parent
         self._open_log()
@@ -224,6 +234,14 @@ class Interpreter:
                 raise  # control-flow signals pass through untouched
             except GodCodeError as err:
                 self._attach_line(err, getattr(stmt, "line", None))
+                # --- v5.2: snapshot the call stack for uncaught-error
+                # traces. This innermost handler fires before any _call_rite
+                # finally unwinds, so the stack is still whole. First sight
+                # wins: an error re-raised from a CATCH keeps the stack of
+                # where it first rose.
+                if getattr(err, "call_trace", None) is None:
+                    err.call_trace = self.call_trace()
+                # --- end v5.2 ---
                 self._log(f"ERROR :: line {getattr(err, 'line', '?')} :: {err}")
                 raise
 
@@ -273,6 +291,8 @@ class Interpreter:
             raise BreakSignal()
         elif isinstance(stmt, Continue):
             raise ContinueSignal()
+        elif isinstance(stmt, TryStmt):
+            self._exec_try(stmt, env)
         elif isinstance(stmt, DefineRite):
             env.define(stmt.name, RiteFunction(stmt.name, stmt.params, stmt.body, env))
         elif isinstance(stmt, Return):
@@ -469,6 +489,21 @@ class Interpreter:
                 continue  # the condition is weighed again for the next turn
             except BreakSignal:
                 break  # the cycle ends at once
+
+    def _exec_try(self, stmt: TryStmt, env: Environment) -> None:
+        # Only GodRuntimeError is caught: parse/lexer errors fail before a
+        # run ever starts, and ReturnSignal / AscendSignal are plain
+        # Exceptions (not GodCodeError subclasses), so a RETURN inside TRY
+        # still returns from its rite and ASCEND still ends the run in peace.
+        # Errors raised inside the CATCH body are outside this try, so they
+        # propagate outward normally; nested TRYs handle their own errors.
+        try:
+            self._exec_block(stmt.try_body, env)
+        except GodRuntimeError as err:
+            # Bind the plain message (err.msg, without the location suffix
+            # str(err) would append) so the CATCH can speak of it.
+            env.define(stmt.error_name, err.msg)
+            self._exec_block(stmt.catch_body, env)
 
     def _exec_import(self, stmt: Import, env: Environment) -> None:
         line = getattr(stmt, "line", None)
@@ -819,6 +854,9 @@ class Interpreter:
             call_env.define(param, value)
         rendered = ", ".join(self.stringify(a) for a in args)
         self._log(f"RITE CALL :: {rite.name}({rendered})")
+        # --- v5.2: runtime call stack for uncaught-error traces ---
+        self.call_stack.append({"rite": rite.name, "line": line})
+        # --- end v5.2 ---
         if self.debugger is not None:
             self.debugger.enter_rite(rite, call_env)
         try:
@@ -839,8 +877,19 @@ class Interpreter:
                 ) from None
             return None
         finally:
+            # --- v5.2 ---
+            self.call_stack.pop()
+            # --- end v5.2 ---
             if self.debugger is not None:
                 self.debugger.exit_rite(rite)
+
+    def call_trace(self) -> list[dict]:
+        """A snapshot of the rite call stack for uncaught-error reports.
+
+        Oldest call first (the most recent call is last). Each entry is
+        ``{"rite": name, "line": call-site line}``.
+        """
+        return [dict(frame) for frame in self.call_stack]
 
     # --------------------------------------------------------------- builtins
 

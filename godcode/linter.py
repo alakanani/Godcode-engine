@@ -357,6 +357,20 @@ class _Linter:
             self._finding(node.line, node.col, "GC004", "empty WHILE body")
         self._walk_block(node.body, scope)
 
+    def _stmt_TryStmt(self, node, scope: _Scope) -> None:
+        # TRY/CATCH bodies run in the current environment: no new scope.
+        # The CATCH's error name is an implicit binding, marked used so a
+        # CATCH that never reads it is not flagged as an unused variable.
+        if not node.try_body:
+            self._finding(node.line, node.col, "GC004", "empty TRY body")
+        self._walk_block(node.try_body, scope)
+        decl = self._declare(scope, node.error_name, _DECLARE,
+                             node.line, node.col)
+        decl.used = True
+        if not node.catch_body:
+            self._finding(node.line, node.col, "GC004", "empty CATCH body")
+        self._walk_block(node.catch_body, scope)
+
     def _stmt_DefineRite(self, node, scope: _Scope) -> None:
         # The rite name is bound in the enclosing scope (so rites may call
         # themselves); the body runs in a child environment whose parent is

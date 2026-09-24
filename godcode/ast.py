@@ -142,14 +142,30 @@ class WhileLoop:
 
 @dataclass
 class Break:
-    """BREAK — release the innermost enclosing loop at once."""
+    """BREAK: release the innermost enclosing loop at once."""
     line: int = 1
     col: int = 1
 
 
 @dataclass
 class Continue:
-    """CONTINUE — skip to the next turn of the innermost enclosing loop."""
+    """CONTINUE: skip to the next turn of the innermost enclosing loop."""
+    line: int = 1
+    col: int = 1
+
+
+@dataclass
+class TryStmt:
+    """TRY ... CATCH [name] ... ENDTRY: in-language error handling.
+
+    The TRY block runs first; if a runtime error (GodRuntimeError) rises,
+    the error's plain message is bound to ``error_name`` and the CATCH
+    block runs. ``error_name`` defaults to "ERROR" when the CATCH carries
+    no name. Control-flow signals (RETURN, ASCEND) are never caught.
+    """
+    try_body: list = field(default_factory=list)
+    catch_body: list = field(default_factory=list)
+    error_name: str = "ERROR"
     line: int = 1
     col: int = 1
 

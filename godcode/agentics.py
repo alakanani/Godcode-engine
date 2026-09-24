@@ -105,6 +105,21 @@ def diagnostic(err, *, severity: str = "error") -> dict:
     }
 
 
+def error_trace(err) -> list[dict]:
+    """The ``run --json`` trace array for a failed run.
+
+    A list of ``{"rite": name, "line": call-site line}``, oldest call first
+    (the most recent call is last). Empty when the error rose at the top
+    level, before any rite was called. The interpreter snapshots
+    ``err.call_trace`` when the error first rises, before the call stack
+    unwinds.
+    """
+    return [
+        {"rite": frame.get("rite"), "line": frame.get("line")}
+        for frame in (getattr(err, "call_trace", None) or [])
+    ]
+
+
 def _file_error_diagnostic(path: str, exc: OSError) -> dict:
     detail = exc.strerror or str(exc)
     return {
@@ -225,6 +240,7 @@ def cmd_run_json(args) -> int:
             interp.run_source(source, source_name=args.file)
         except GodCodeError as err:
             error = diagnostic(err)
+            error["trace"] = error_trace(err)
     ms = int((time.perf_counter() - start) * 1000)
 
     output = buf.getvalue().splitlines()

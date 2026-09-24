@@ -133,3 +133,24 @@ def format_error(source: str, err: GodCodeError) -> str:
             if isinstance(col, int) and 1 <= col <= len(text) + 1:
                 lines.append(" " * len(gutter) + " " * (col - 1) + "^")
     return "\n".join(lines)
+
+
+def format_call_trace(trace: list[dict]) -> list[str]:
+    """Render a rite call stack for humans, beneath the gentle error.
+
+    One ``Called by`` line per call, oldest first, with
+    ``(most recent call last)`` beneath them. An empty trace gives no lines:
+    an error raised at the top level (no rite calls) shows no trace section.
+    """
+    if not trace:
+        return []
+    lines: list[str] = []
+    for frame in trace:
+        rite = frame.get("rite", "<rite>")
+        line = frame.get("line")
+        if isinstance(line, int):
+            lines.append(f"Called by {rite} at line {line}")
+        else:
+            lines.append(f"Called by {rite}")
+    lines.append("(most recent call last)")
+    return lines

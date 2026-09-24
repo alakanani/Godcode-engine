@@ -154,6 +154,24 @@ LSP_DOCS: dict[str, str] = {
         "`WHILE` loop. It can only be spoken within a loop.\n\n"
         "```godcode\nFOR n IN RANGE(10)\n  IF n % 2 IS 0 THEN\n    CONTINUE\n  ENDIF\n  REVEAL(n)\nENDFOR\n```"
     ),
+    "TRY": (
+        "**TRY**\n\n"
+        "Open a sheltered work: if a runtime error rises inside, the "
+        "`CATCH` block runs with the message bound to `ERROR` (or a name "
+        "of your choosing). `RETURN` and `ASCEND` are never "
+        "caught.\n\n```godcode\nTRY\n  REVEAL(fragile_work())\nCATCH\n"
+        "  REVEAL(\"caught: {ERROR}\")\nENDTRY\n```"
+    ),
+    "CATCH": (
+        "**CATCH**\n\n"
+        "The refuge of a `TRY` block. Alone it binds the error's message "
+        "to `ERROR`; `CATCH name` binds it to `name` instead.\n\n"
+        "```godcode\nCATCH trouble\n  REVEAL(trouble)\n```"
+    ),
+    "ENDTRY": (
+        "**ENDTRY**\n\n"
+        "The seal upon a `TRY` … `CATCH` shelter.\n\n```godcode\nENDTRY\n```"
+    ),
     "DEFINE": (
         "**DEFINE**\n\n"
         "The first word of a rite's establishment — always paired with "
@@ -393,6 +411,9 @@ _SNIPPETS: tuple[tuple[str, str, str], ...] = (
     ("WHILE … DO … ENDWHILE",
      "WHILE ${1:condition} DO\n\t$0\nENDWHILE",
      "Keep a vigil"),
+    ("TRY … CATCH … ENDTRY",
+     "TRY\n\t${1:works}\nCATCH\n\t${2:refuge}$0\nENDTRY",
+     "Shelter a fragile work"),
     ("DEFINE RITE … END RITE",
      "DEFINE RITE ${1:name}(${2:params})\n\t$0\nEND RITE",
      "Establish a rite"),
