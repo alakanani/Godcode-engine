@@ -1,0 +1,140 @@
+(* ============================================================
+   God Code: EBNF grammar
+   Mirrors godcode/parser.py as implemented (v4.0 engine).
+   Nothing here is aspirational: every production below is accepted
+   by the parser, and every statement the parser accepts appears below.
+
+   Lexical notes
+   - Keywords are case-insensitive; canonical style is UPPER.
+     Identifiers preserve case.
+   - A comment starts with "#" and runs to the end of the line.
+   - Statements live one per line (NEWLINE below). The inline forms
+     of IF, FOR, and WHILE, and inline rite bodies, are the exceptions.
+   - "END RITE" is two tokens, not one.
+   - Strings are double-quoted with escapes. Inside a string, {expr}
+     breathes an expression's value into the words; {{ and }} write a
+     plain brace. (Handled in string processing, not in this grammar.)
+   - There is no map literal in expressions. Maps arrive from
+     JSON_PARSE and from ANCHOR receipts.
+   ============================================================ *)
+
+program         = [ creation_block ] statement_seq ;
+
+creation_block  = "BEGIN" "CREATION" NEWLINE
+                  statement_seq
+                  "END" "CREATION" ;
+(* A bare sequence of statements with no creation block is also
+   accepted, for scrolls and fragments. *)
+
+statement_seq   = { statement NEWLINE } ;
+
+statement       = declare_stmt | breathe_stmt | reveal_stmt | prophesy_stmt
+                | ascend_stmt | reflect_stmt | bless_stmt | anoint_stmt
+                | seal_stmt | testify_stmt | if_stmt | for_stmt | while_stmt
+                | break_stmt | continue_stmt | try_stmt | define_rite_stmt
+                | return_stmt | import_stmt | expr_stmt ;
+
+(* --- binding and breath --- *)
+
+declare_stmt    = "DECLARE" "INTENT" string "ON" ident
+                | "DECLARE" ident "AS" expr { "," expr } ;
+(* "DECLARE INTENT" is taken only when DECLARE is followed by the word
+   INTENT and then a quoted string; the words INTENT and ON are soft
+   keywords, so DECLARE intent AS x keeps working. Multiple comma
+   values become a list. *)
+
+breathe_stmt    = "BREATHE" "LIFE" "INTO" ident ;
+reveal_stmt     = "REVEAL" "(" expr ")" ;
+prophesy_stmt   = "PROPHESY" rest_of_line ;
+(* The prophecy words are the rest of the line exactly as written;
+   words colliding with keywords are lexed as keywords. *)
+ascend_stmt     = "ASCEND" ;
+reflect_stmt    = "REFLECT" ;
+bless_stmt      = "BLESS" ident ;
+anoint_stmt     = "ANOINT" ident ;
+seal_stmt       = "SEAL" expr ;
+testify_stmt    = "TESTIFY" expr ;
+
+(* --- decisions --- *)
+
+if_stmt         = "IF" expr "THEN" NEWLINE
+                  statement_seq
+                  [ "ELSE" NEWLINE statement_seq ]
+                  "ENDIF"
+                | "IF" expr "THEN" statement [ "ELSE" statement ] ;
+(* There is no ELSE IF token. An ELSE IF chain is a nested IF in the
+   ELSE branch. In the inline form both branches stay on one line. *)
+
+(* --- cycles --- *)
+
+for_stmt        = "FOR" ident "IN" expr
+                  ( NEWLINE statement_seq [ "ENDFOR" ]
+                  | statement ) ;
+(* Legacy form: the block may omit ENDFOR; the body then runs to
+   END CREATION, END RITE, or end of file. New scrolls should close
+   with ENDFOR. *)
+while_stmt      = "WHILE" expr "DO"
+                  ( NEWLINE statement_seq "ENDWHILE"
+                  | statement ) ;
+break_stmt      = "BREAK" ;
+continue_stmt   = "CONTINUE" ;
+(* BREAK and CONTINUE are rejected at parse time outside a loop.
+   A rite body resets the loop depth: a BREAK inside a rite answers
+   only to loops within that rite. *)
+
+(* --- sheltered work --- *)
+
+try_stmt        = "TRY" NEWLINE statement_seq
+                  "CATCH" [ ident ] NEWLINE statement_seq
+                  "ENDTRY" ;
+(* TRY must open on its own line. CATCH with no name binds ERROR. *)
+
+(* --- rites --- *)
+
+define_rite_stmt = "DEFINE" "RITE" ident "(" [ ident { "," ident } ] ")"
+                   ( NEWLINE statement_seq "END" "RITE"
+                   | statement "END" "RITE" ) ;
+return_stmt     = "RETURN" [ expr ] ;
+(* RETURN with no expression returns void. RETURN is bare on its line;
+   a following expression is taken only when one is present. *)
+
+import_stmt     = "IMPORT" string ;
+
+(* --- calls and bare expressions --- *)
+
+expr_stmt       = "INVOKE" ident "(" [ expr { "," expr } ] ")"
+                | expr ;
+
+(* ============================================================
+   Expressions, lowest precedence first.
+   NOT binds at two levels: below comparison (so NOT a IS b means
+   NOT (a IS b)) and as a high unary (so 2 * NOT x means 2 * (NOT x)).
+   IS becomes == and IS NOT becomes !=.
+   ============================================================ *)
+
+expr            = or_expr ;
+or_expr         = and_expr { "OR" and_expr } ;
+and_expr        = not_low { "AND" not_low } ;
+not_low         = "NOT" not_low | comparison ;
+comparison      = additive { comp_op additive } ;
+comp_op         = "IS" [ "NOT" ] | "==" | "!=" | "<" | ">" | "<=" | ">=" ;
+additive        = multiplicative { ("+" | "-") multiplicative } ;
+multiplicative  = unary { ("*" | "/" | "%") unary } ;
+unary           = ("-" | "NOT") unary | postfix ;
+postfix         = primary { "[" expr "]" } ;
+primary         = number | string | "TRUE" | "FALSE" | "VOID"
+                | ident [ "(" [ expr { "," expr } ] ")" ]
+                | "INVOKE" ident "(" [ expr { "," expr } ] ")"
+                | "(" expr ")"
+                | "[" [ expr { "," expr } ] "]" ;
+(* TRUE, FALSE, and VOID are accepted as literals by the parser.
+   contract("name") is a special form resolved before rite and
+   builtin lookup; it is not a normal call. *)
+
+(* --- lexical atoms (defined by the lexer) --- *)
+ident           = (* a name: letters, digits, underscore; not starting
+                   with a digit; case preserved *) ;
+number          = (* integer or float *) ;
+string          = (* double-quoted, with escapes *) ;
+rest_of_line    = (* every token to the end of the line *) ;
+NEWLINE         = (* end of line *) ;
