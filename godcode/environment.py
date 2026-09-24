@@ -55,7 +55,7 @@ class Environment:
             env = env.parent
         raise GodRuntimeError(
             with_suggestion(
-                f"There is no '{name}' to reshape — it was never spoken into being.",
+                f"There is no '{name}' to reshape. It was never spoken into being.",
                 name,
                 self.names(),
             )

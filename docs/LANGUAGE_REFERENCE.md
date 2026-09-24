@@ -41,7 +41,7 @@ Statements live one per line (the inline `IF` form is the one exception. See §7
 | number | `3`, `4.5` | int or float |
 | string | `"peace"` | double-quoted, with escapes and `{expr}` interpolation |
 | **symbol** | `worthy` | any bare word — see the Symbol Rule |
-| boolean | *(from comparisons)* | there are no `true`/`false` literals; `1 < 2` yields one |
+| boolean | `TRUE`, `FALSE` | literals; also produced by comparisons; revealed as `true`/`false` |
 | list | `[1, two, "three"]` | ordered, mixed types allowed |
 | contract | `contract("everlasting")` | created with the `contract()` rite |
 | rite | *(from DEFINE RITE)* | a named, callable blessing |
@@ -88,12 +88,14 @@ The braces may hold any expression: names, arithmetic, comparisons, builtin rite
 
 ### Truthiness
 
-`False`, `0`, `0.0`, `""`, `[]`, and `void` are falsy. **Symbols are always truthy.** Everything else is truthy.
+`FALSE`, `0`, `0.0`, `""`, `[]`, the empty map, and `void` are falsy. **Symbols are always truthy.** Everything else is truthy.
 
 ## 4. Names and Scope
 
 - `DECLARE` **always defines in the current scope.** There is no rebinding of outer scopes. Declaring a name that exists outside creates (or updates) it in the current scope instead.
-- A `FOR`/`WHILE` body runs in a **child scope** that lasts for the whole loop, so `DECLARE` inside a loop updates what the loop's condition sees on the next cycle.
+- A `WHILE` body runs in the **enclosing scope** (no new scope), so `DECLARE count AS count - 1` inside a `WHILE` loop updates the very name the loop's condition watches.
+- A `FOR` body runs in **one child scope** that lasts for the whole loop, holding the loop variable. `DECLARE` inside a `FOR` body shadows the outer scope and does not touch it, so accumulation in `FOR` loops does not work the way it does in `WHILE` loops.
+- An `IF`/`ELSE` body runs in the enclosing scope. There is no new scope.
 - A rite call runs in a **child scope of the rite's definition site** (a closure): rites remember where they were born.
 - `REFLECT` prints every name visible in the current scope (`name = value`, one per line).
 

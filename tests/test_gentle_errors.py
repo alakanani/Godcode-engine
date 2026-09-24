@@ -213,3 +213,45 @@ class TestCliErrorRendering:
         assert exc.value.code == 1
         err = capsys.readouterr().err
         assert "  2 |   INVOKE BLESSIN" in err
+
+
+
+# ------------------------------------------- no em dashes in gentle messages
+
+
+class TestNoEmDashesInGentleMessages:
+    """Project voice rule: user-facing text uses full stops, never em dashes."""
+
+    def _messages(self):
+        cases = [
+            # unknown rite
+            "BEGIN CREATION\n"
+            "  DEFINE RITE BLESSING(name)\n"
+            "    RETURN name\n"
+            "  END RITE\n"
+            '  INVOKE BLESSIN("seeker")\n'
+            "END CREATION\n",
+            # breathe into undeclared name
+            'BEGIN CREATION\n  DECLARE word AS "grace"\n  BREATHE LIFE INTO wrod\nEND CREATION\n',
+            # bless undeclared name
+            'BEGIN CREATION\n  DECLARE pact AS "vow"\n  BLESS patc\nEND CREATION\n',
+            # map missing key
+            "BEGIN CREATION\n" '  DECLARE receipt AS ANCHOR("grace")\n' '  REVEAL(receipt["anchor_hsh"])\n' "END CREATION\n",
+        ]
+        out = []
+        for src in cases:
+            out.append(str(_run(src)))
+        # reshape path: only reachable from Python, not from scroll syntax
+        try:
+            Environment().set_existing("taly", 1)
+        except GodRuntimeError as err:
+            out.append(str(err))
+        return out
+
+    def test_no_em_dash_in_any_gentle_message(self):
+        for msg in self._messages():
+            assert "\u2014" not in msg, "em dash found in: %r" % msg
+
+    def test_suggestions_still_appear(self):
+        msgs = self._messages()
+        assert any("Did you mean" in m for m in msgs)

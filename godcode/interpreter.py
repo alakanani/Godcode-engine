@@ -315,8 +315,8 @@ class Interpreter:
         if not env.is_bound(stmt.name):
             raise GodRuntimeError(
                 with_suggestion(
-                    f"There is no '{stmt.name}' to breathe into — "
-                    "it was never spoken into being.",
+                    f"There is no '{stmt.name}' to breathe into. "
+                    "It was never spoken into being.",
                     stmt.name,
                     env.names(),
                 ),
@@ -349,7 +349,7 @@ class Interpreter:
         if not env.is_bound(name):
             raise GodRuntimeError(
                 with_suggestion(
-                    f"There is no '{name}' to {verb} — it was never spoken into being.",
+                    f"There is no '{name}' to {verb}. It was never spoken into being.",
                     name,
                     env.names(),
                 ),
@@ -632,7 +632,7 @@ class Interpreter:
                 known = ", ".join(obj) or "it holds nothing"
                 raise GodRuntimeError(
                     with_suggestion(
-                        f"The map holds no '{key}' — its keys are: {known}.",
+                        f"The map holds no '{key}'. Its keys are: {known}.",
                         key,
                         list(obj),
                     ),
@@ -828,7 +828,7 @@ class Interpreter:
         ]
         raise GodRuntimeError(
             with_suggestion(
-                f"There is no rite named '{name}' — the heavens do not know it.",
+                f"There is no rite named '{name}'. The heavens do not know it.",
                 name,
                 rite_names + list(self._builtins),
             ),
