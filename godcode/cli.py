@@ -196,6 +196,28 @@ def cmd_lint(args: argparse.Namespace) -> int:
 
 
 # ---------------------------------------------------------------------------
+# test — the test runner
+# ---------------------------------------------------------------------------
+def cmd_test(args: argparse.Namespace) -> int:
+    import json as _json
+
+    from godcode import tester
+
+    target = Path(args.dir)
+    if not target.is_dir():
+        print(f"godcode: '{args.dir}' is not a directory to test.",
+              file=sys.stderr)
+        return 2
+    report = tester.run_tests(target)
+    if getattr(args, "json", False):
+        print(_json.dumps(report.payload(args.dir), ensure_ascii=False))
+    else:
+        for line in report.text_lines():
+            print(line)
+    return 1 if report.failed else 0
+
+
+# ---------------------------------------------------------------------------
 # repl
 # ---------------------------------------------------------------------------
 def cmd_repl(args: argparse.Namespace) -> int:  # noqa: ARG001
@@ -696,6 +718,17 @@ def build_parser() -> argparse.ArgumentParser:
     p_lint.add_argument("--json", action="store_true",
                         help="Emit a machine-readable JSON report on stdout")
     p_lint.set_defaults(func=cmd_lint)
+
+    p_test = sub.add_parser(
+        "test",
+        help="Run the TEST_ rites in a directory's test scrolls")
+    p_test.add_argument("dir", nargs="?", default=".",
+                        help="Directory holding test scrolls (default: the "
+                             "current directory). Only that directory is "
+                             "read; subfolders are not entered.")
+    p_test.add_argument("--json", action="store_true",
+                        help="Emit a machine-readable JSON report on stdout")
+    p_test.set_defaults(func=cmd_test)
 
     p_ledger = sub.add_parser("ledger", help="Covenant ledger commands")
     ledger_sub = p_ledger.add_subparsers(dest="ledger_command", required=True)

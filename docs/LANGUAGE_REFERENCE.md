@@ -469,6 +469,7 @@ After `pip install -e .`, the `godcode` command is yours:
 | `godcode check <file>` | lex + parse only → `✓ <file> is pure.` |
 | `godcode check --json <file>` / `godcode run --json <file>` | machine-readable JSON reports for AI agents: diagnostics with line/col/code/hint, output lines, seals, timing (see `docs/agentics.md`) |
 | `godcode repl` | **Live Mode** 🕊 — type code, end a block with a blank line; `:quit`/`:q` or Ctrl-D to ascend |
+| `godcode test [dir] [--json]` | run the `TEST_` rites in a directory's test scrolls (§29) |
 | `godcode fmt <file> [--in-place\|-w]` | re-emit canonical source: 2-space indent, one statement per line, keywords UPPER |
 | `godcode ledger verify [--file PATH] [--anchor-file PATH]` | verify the covenant chain **and** the anchor chain (§26) |
 | `godcode intent "words..." [--json]` | resolve the intent behind words with the Spirit (§25) |
@@ -712,6 +713,80 @@ host can call God Code like any other tool. The canonical agent workflow
 remains: generate → `check --json` → fix from diagnostics →
 `run --sandbox --json` → inspect `output`/`error`/`intents` → iterate.
 Now, as all good works do, the workflow begins with a declared intent.
+
+## 29. Testing — `godcode test`
+
+A **test scroll** is any `.god` file named `test_*.god` or `*_test.god`.
+Inside it, every rite named `TEST_*` is one test case (names are
+case-insensitive, like all keywords). `TESTIFY` is the assertion: a
+testimony that holds passes; one that fails — or any runtime error —
+fails that test.
+
+```godcode
+BEGIN CREATION
+  IMPORT "lists"
+
+  DEFINE RITE TEST_sum_of_tribes()
+    DECLARE tribes AS [Judah, Reuben, Gad]
+    TESTIFY LEN(tribes) IS 3
+  END RITE
+
+  DEFINE RITE TEST_avg_is_fair()
+    TESTIFY AVG([2, 4]) IS 3
+  END RITE
+END CREATION
+```
+
+```bash
+godcode test                # test the scrolls in the current directory
+godcode test tests/         # test the scrolls in tests/
+godcode test --json         # machine-readable report
+```
+
+The report prints one line per test, then a summary — in the plain voice
+of the language, no decoration:
+
+```text
+PASS  test_lists.god :: TEST_sum_of_tribes
+FAIL  test_lists.god :: TEST_avg_is_fair :: The testimony has failed — what was spoken does not hold true. (line 11)
+1 passed, 1 failed.
+```
+
+The rules the runner keeps:
+
+- **Isolation.** Each `TEST_*` rite runs in a fresh interpreter. The
+  scroll's top-level words run again before every test, so one test can
+  never see another's state — not even across files.
+- **One scroll, one parse.** A scroll that cannot be read or parsed is
+  reported as a file-level failure (`(scroll)`) and never crashes the run.
+- **Parameters are not called.** A `TEST_` rite that asks for offerings is
+  reported as `SKIP`, with the reason, and does not fail the run.
+- **Names are namespaced by file.** Two scrolls may each define
+  `TEST_same`; both run, both are reported.
+- **Discovery is shallow.** Only the given directory's own scrolls are
+  read; subfolders are not entered. Files named anything else are left
+  untouched, even if they define `TEST_` rites.
+- **Quiet runs.** `REVEAL` lines and `[TESTIFY]` notices are swallowed so
+  the report stays one line per test.
+
+Exit codes: `0` when every test passes (skips do not fail the run),
+`1` when any test fails, `2` on usage error (for example, a directory
+that does not exist). Tests run the way `godcode run` does — no Spirit,
+no ledger, no sandbox — so only test scrolls you wrote or trust.
+
+`--json` emits one document for agents and tooling:
+
+```json
+{"tool": "godcode", "command": "test", "dir": ".",
+ "tests": [{"file": "test_lists.god", "rite": "TEST_sum_of_tribes",
+            "ok": true, "message": ""}],
+ "passed": 1, "failed": 0, "skipped": 0}
+```
+
+`ok` is `true` (passed), `false` (failed), or `null` (skipped).
+File-level failures appear as entries with `"rite": "(scroll)"`.
+Scrolls that hold no `TEST_` rites are noted in the text report only
+(`test_empty.god :: no TEST_ rites found.`) and do not fail the run.
 
 ---
 
