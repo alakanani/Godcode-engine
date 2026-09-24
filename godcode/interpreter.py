@@ -88,6 +88,11 @@ class Interpreter:
         self._plugin_verbs: dict[str, Callable[..., Any]] = {}  # namespaced verbs from plugins
         self._plugin_verb_info: dict[str, dict] = {}  # name -> {"plugin", "trusted", "func"}
         self.loaded_plugins: list[str] = []  # plugin names whose register() ran cleanly
+        # --- debugger hook (v5.0) ---
+        # Set to a godcode.debugger.DebugSession to trace execution. None
+        # keeps the fast path: _exec_block checks this once per statement.
+        self.debugger = None
+        # --- end debugger hook ---
         # --- v4.0: intent layer + chain adapters ---
         self.intents: dict[str, str] = {}  # rite name -> declared intent text
         self.intent_checks: list[dict] = []  # per-invocation alignment records
@@ -200,6 +205,8 @@ class Interpreter:
 
     def _exec_block(self, statements: list, env: Environment) -> None:
         for stmt in statements:
+            if self.debugger is not None:
+                self.debugger.before_stmt(stmt, env)
             self._log_statement(stmt)
             try:
                 self._exec_stmt(stmt, env)
@@ -453,6 +460,8 @@ class Interpreter:
         previous_dir = self.source_dir
         previous_source = self._last_source
         self.source_dir = path.parent
+        if self.debugger is not None:
+            self.debugger.enter_file(str(path))
         try:
             source = path.read_text(encoding="utf-8")
             self._last_source = source
@@ -460,6 +469,8 @@ class Interpreter:
             self._log(f"IMPORT :: {path}")
             self._exec_block(self._statements_of(program), env)
         finally:
+            if self.debugger is not None:
+                self.debugger.exit_file()
             self._import_stack.pop()
             self.source_dir = previous_dir
             self._last_source = previous_source
@@ -782,11 +793,17 @@ class Interpreter:
             call_env.define(param, value)
         rendered = ", ".join(self.stringify(a) for a in args)
         self._log(f"RITE CALL :: {rite.name}({rendered})")
+        if self.debugger is not None:
+            self.debugger.enter_rite(rite, call_env)
         try:
-            self._exec_block(rite.body, call_env)
-        except ReturnSignal as ret:
-            return ret.value
-        return None
+            try:
+                self._exec_block(rite.body, call_env)
+            except ReturnSignal as ret:
+                return ret.value
+            return None
+        finally:
+            if self.debugger is not None:
+                self.debugger.exit_rite(rite)
 
     # --------------------------------------------------------------- builtins
 

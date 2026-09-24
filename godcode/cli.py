@@ -547,6 +547,13 @@ def cmd_lsp(args: argparse.Namespace) -> int:  # noqa: ARG001
     return serve()
 # --- end v3: lsp commands ---
 
+# --- v5.0: dap commands ---
+def cmd_dap(args: argparse.Namespace) -> int:  # noqa: ARG001
+    from godcode.dap import serve
+
+    return serve()
+# --- end v5.0: dap commands ---
+
 # --- v4.0: intent command ---
 def cmd_intent(args: argparse.Namespace) -> int:
     """`godcode intent "some words" [--json]`: resolve intent via the Spirit."""
@@ -588,6 +595,14 @@ def cmd_bridge(args: argparse.Namespace) -> int:
 
     return _cmd_bridge(args)
 # --- end v4.0 ---
+
+
+# --- v5.0: interactive debugger ---
+def cmd_debug(args: argparse.Namespace) -> int:
+    from godcode.debug_cli import cmd_debug as _cmd_debug
+
+    return _cmd_debug(args)
+# --- end v5.0 ---
 
 
 # ---------------------------------------------------------------------------
@@ -683,6 +698,24 @@ def build_parser() -> argparse.ArgumentParser:
                            help="Start the language server over stdio")
     p_lsp.set_defaults(func=cmd_lsp)
     # --- end v3: lsp commands ---
+
+    # --- v5.0: dap commands ---
+    p_dap = sub.add_parser("dap",
+                           help="Start the God Code debug adapter (DAP) "
+                                "over stdio")
+    p_dap.set_defaults(func=cmd_dap)
+    # --- end v5.0: dap commands ---
+
+    # --- v5.0: interactive debugger ---
+    p_debug = sub.add_parser("debug",
+                             help="Debug a God Code scroll interactively")
+    p_debug.add_argument("file", help="Path to the .god scroll")
+    p_debug.add_argument("--break", "-b", dest="breaks", action="append",
+                         type=int, default=[], metavar="LINE",
+                         help="Pause at LINE as well as on entry "
+                              "(repeatable)")
+    p_debug.set_defaults(func=cmd_debug)
+    # --- end v5.0 ---
 
     return parser
 

@@ -1,1 +1,142 @@
-{"activationEvents":["onLanguage:godcode"],"categories":["Programming Languages","Snippets"],"contributes":{"commands":[{"command":"godcode.runFile","title":"God Code: Run Current File"},{"command":"godcode.checkFile","title":"God Code: Check Syntax of Current File"}],"grammars":[{"language":"godcode","path":"./syntaxes/godcode.tmLanguage.json","scopeName":"source.godcode"}],"keybindings":[{"command":"godcode.runFile","key":"ctrl+alt+r","mac":"cmd+alt+r","when":"editorLangId == godcode"}],"languages":[{"aliases":["God Code","godcode"],"configuration":"./language-configuration.json","extensions":[".god",".godcode"],"icon":{"dark":"./images/icon.png","light":"./images/icon.png"},"id":"godcode"}],"menus":{"editor/title":[{"command":"godcode.runFile","group":"navigation","when":"editorLangId == godcode"}]},"snippets":[{"language":"godcode","path":"./snippets/godcode.json"}]},"description":"Language support for God Code — the spiritually-inspired programming language. Syntax highlighting, snippets, and one-key running of .god files.","displayName":"God Code","engines":{"vscode":"^1.80.0"},"icon":"images/icon.png","keywords":["godcode","divine","language","god code"],"license":"MIT","main":"./extension.js","name":"godcode","publisher":"alakanani","repository":{"type":"git","url":"https://github.com/godcodeengine/Godcode-engine"},"version":"2.1.0"}
+{
+  "activationEvents": [
+    "onLanguage:godcode"
+  ],
+  "categories": [
+    "Programming Languages",
+    "Snippets"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "godcode.runFile",
+        "title": "God Code: Run Current File"
+      },
+      {
+        "command": "godcode.checkFile",
+        "title": "God Code: Check Syntax of Current File"
+      },
+      {
+        "command": "godcode.debugFile",
+        "title": "God Code: Debug Current File"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "godcode",
+        "path": "./syntaxes/godcode.tmLanguage.json",
+        "scopeName": "source.godcode"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "godcode.runFile",
+        "key": "ctrl+alt+r",
+        "mac": "cmd+alt+r",
+        "when": "editorLangId == godcode"
+      },
+      {
+        "command": "godcode.debugFile",
+        "key": "f5",
+        "mac": "f5",
+        "when": "editorLangId == godcode"
+      }
+    ],
+    "languages": [
+      {
+        "aliases": [
+          "God Code",
+          "godcode"
+        ],
+        "configuration": "./language-configuration.json",
+        "extensions": [
+          ".god",
+          ".godcode"
+        ],
+        "icon": {
+          "dark": "./images/icon.png",
+          "light": "./images/icon.png"
+        },
+        "id": "godcode"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "godcode.runFile",
+          "group": "navigation",
+          "when": "editorLangId == godcode"
+        },
+        {
+          "command": "godcode.debugFile",
+          "group": "navigation",
+          "when": "editorLangId == godcode"
+        }
+      ]
+    },
+    "snippets": [
+      {
+        "language": "godcode",
+        "path": "./snippets/godcode.json"
+      }
+    ],
+    "debuggers": [
+      {
+        "type": "godcode",
+        "label": "God Code",
+        "configurationAttributes": {
+          "launch": {
+            "required": [
+              "program"
+            ],
+            "properties": {
+              "program": {
+                "type": "string",
+                "description": "Path to the .god scroll to debug"
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "description": "Pause at the first statement",
+                "default": true
+              }
+            }
+          }
+        },
+        "configurationSnippets": [
+          {
+            "label": "God Code: Launch scroll",
+            "description": "Debug the current .god scroll",
+            "body": {
+              "type": "godcode",
+              "request": "launch",
+              "name": "Debug ${file}",
+              "program": "^\"\\${file}\"",
+              "stopOnEntry": true
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "description": "Language support for God Code \u2014 the spiritually-inspired programming language. Syntax highlighting, snippets, and one-key running of .god files.",
+  "displayName": "God Code",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "icon": "images/icon.png",
+  "keywords": [
+    "godcode",
+    "divine",
+    "language",
+    "god code"
+  ],
+  "license": "MIT",
+  "main": "./extension.js",
+  "name": "godcode",
+  "publisher": "alakanani",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/godcodeengine/Godcode-engine"
+  },
+  "version": "2.2.0"
+}

@@ -45,8 +45,38 @@ async function runGodCode(checkOnly) {
 function activate(context) {
   context.subscriptions.push(
     vscode.commands.registerCommand('godcode.runFile', () => runGodCode(false)),
-    vscode.commands.registerCommand('godcode.checkFile', () => runGodCode(true))
+    vscode.commands.registerCommand('godcode.checkFile', () => runGodCode(true)),
+    vscode.commands.registerCommand('godcode.debugFile', debugGodCode),
+    vscode.debug.registerDebugAdapterDescriptorFactory('godcode', {
+      createDebugAdapterDescriptor: async () => {
+        const bin = await findGodCode();
+        if (!bin) {
+          vscode.window.showErrorMessage(
+            'God Code interpreter not found. Install it with: pip install -e <path-to-Godcode-engine>'
+          );
+          return null;
+        }
+        const parts = bin.split(' ');
+        return new vscode.DebugAdapterExecutable(parts[0], [...parts.slice(1), 'dap']);
+      },
+    })
   );
+}
+
+async function debugGodCode() {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor || editor.document.languageId !== 'godcode') {
+    vscode.window.showWarningMessage('Open a God Code (.god) file first.');
+    return;
+  }
+  await editor.document.save();
+  vscode.debug.startDebugging(undefined, {
+    type: 'godcode',
+    request: 'launch',
+    name: 'Debug God Code',
+    program: editor.document.fileName,
+    stopOnEntry: true,
+  });
 }
 
 function deactivate() {}
