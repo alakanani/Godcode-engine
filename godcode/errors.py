@@ -71,6 +71,24 @@ class AscendSignal(Exception):
     """Raised by ASCEND; ends the creation in peace."""
 
 
+class BreakSignal(Exception):
+    """Raised by BREAK; carries the loop's end up to the enclosing loop.
+
+    Caught only by the interpreter's loop runners (_exec_for/_exec_while),
+    so BREAK always releases the *innermost* loop. Never crosses a rite
+    boundary: the parser binds every BREAK to a lexically enclosing loop,
+    and _call_rite turns any stray signal into a plain error.
+    """
+
+
+class ContinueSignal(Exception):
+    """Raised by CONTINUE; skips to the next turn of the enclosing loop.
+
+    Same handling contract as BreakSignal: the innermost loop catches it,
+    rite boundaries are never crossed.
+    """
+
+
 def suggest_similar(name, candidates, *, n: int = 1, cutoff: float = 0.6):
     """Return the closest candidate to *name*, or None when nothing is close.
 

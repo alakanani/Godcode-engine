@@ -52,6 +52,10 @@ class Parser:
             raise ParseError("The scroll is empty; there is nothing to reveal")
         self.tokens = tokens
         self.pos = 0
+        # Tracks lexically enclosing FOR/WHILE loops so BREAK and CONTINUE
+        # can be rejected at parse time when no loop holds them. A rite
+        # body resets this to 0: loop signals never cross a rite boundary.
+        self._loop_depth = 0
 
     # -- public ------------------------------------------------------------
 
@@ -204,6 +208,10 @@ class Parser:
             return self._parse_for()
         if tt is TT.WHILE:
             return self._parse_while()
+        if tt is TT.BREAK:
+            return self._parse_break()
+        if tt is TT.CONTINUE:
+            return self._parse_continue()
         if tt is TT.DEFINE:
             return self._parse_define_rite()
         if tt is TT.RETURN:
@@ -317,13 +325,17 @@ class Parser:
         var = self._expect(TT.IDENT, "a name for the traveler").value
         self._expect(TT.IN)
         iterable = self._parse_expr()
-        if self._check(TT.NEWLINE):
-            body = self._parse_body(end={TT.ENDFOR}, missing="ENDFOR",
-                                    opening=f, legacy_for=True)
-            if self._check(TT.ENDFOR):
-                self._advance()
-        else:
-            body = [self._parse_statement()]
+        self._loop_depth += 1
+        try:
+            if self._check(TT.NEWLINE):
+                body = self._parse_body(end={TT.ENDFOR}, missing="ENDFOR",
+                                        opening=f, legacy_for=True)
+                if self._check(TT.ENDFOR):
+                    self._advance()
+            else:
+                body = [self._parse_statement()]
+        finally:
+            self._loop_depth -= 1
         return A.ForLoop(var=var, iterable=iterable, body=body,
                          line=f.line, col=f.col)
 
@@ -331,13 +343,37 @@ class Parser:
         w = self._expect(TT.WHILE)
         cond = self._parse_expr()
         self._expect(TT.DO)
-        if self._check(TT.NEWLINE):
-            body = self._parse_body(end={TT.ENDWHILE}, missing="ENDWHILE",
-                                    opening=w)
-            self._expect(TT.ENDWHILE)
-        else:
-            body = [self._parse_statement()]
+        self._loop_depth += 1
+        try:
+            if self._check(TT.NEWLINE):
+                body = self._parse_body(end={TT.ENDWHILE}, missing="ENDWHILE",
+                                        opening=w)
+                self._expect(TT.ENDWHILE)
+            else:
+                body = [self._parse_statement()]
+        finally:
+            self._loop_depth -= 1
         return A.WhileLoop(cond=cond, body=body, line=w.line, col=w.col)
+
+    def _parse_break(self) -> A.Break:
+        b = self._advance()
+        if self._loop_depth == 0:
+            raise ParseError(
+                "BREAK can only be used inside a loop. It was spoken with "
+                "no cycle to release. Place it within a FOR or a WHILE.",
+                line=b.line, col=b.col,
+            )
+        return A.Break(line=b.line, col=b.col)
+
+    def _parse_continue(self) -> A.Continue:
+        c = self._advance()
+        if self._loop_depth == 0:
+            raise ParseError(
+                "CONTINUE can only be used inside a loop. It was spoken with "
+                "no cycle to turn. Place it within a FOR or a WHILE.",
+                line=c.line, col=c.col,
+            )
+        return A.Continue(line=c.line, col=c.col)
 
     def _parse_define_rite(self) -> A.DefineRite:
         d = self._expect(TT.DEFINE)
@@ -351,13 +387,19 @@ class Parser:
                 self._advance()
                 params.append(self._expect(TT.IDENT, "a parameter name").value)
         self._expect(TT.RPAREN)
-        if self._check(TT.NEWLINE):
-            self._skip_newlines()
-            body = self._parse_body(end={TT.END}, missing="END RITE", opening=d)
-        else:
-            # inline single-statement body, e.g. DEFINE RITE f(x) SEAL x END RITE
-            body = [self._parse_statement()]
-            self._skip_newlines()
+        # A rite body is a fresh boundary: BREAK/CONTINUE inside it may only
+        # answer to loops within the rite, never to a caller's loop.
+        saved_depth, self._loop_depth = self._loop_depth, 0
+        try:
+            if self._check(TT.NEWLINE):
+                self._skip_newlines()
+                body = self._parse_body(end={TT.END}, missing="END RITE", opening=d)
+            else:
+                # inline single-statement body, e.g. DEFINE RITE f(x) SEAL x END RITE
+                body = [self._parse_statement()]
+                self._skip_newlines()
+        finally:
+            self._loop_depth = saved_depth
         self._expect(TT.END)
         self._expect(TT.RITE)
         return A.DefineRite(name=name, params=params, body=body,

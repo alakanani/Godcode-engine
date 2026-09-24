@@ -271,6 +271,25 @@ ENDWHILE
 
 (Inline form: `WHILE count > 0 DO REVEAL(count)`.) A cycle that will not end is stopped after 100,000 iterations — *"the cycle is endless."*
 
+**BREAK** releases the innermost loop at once; **CONTINUE** skips to its next turn:
+
+```godcode
+FOR n IN RANGE(1, 100)
+  IF n IS 13 THEN
+    BREAK            # the walk ends here; nothing more is revealed
+  ENDIF
+  IF n % 2 IS 0 THEN
+    CONTINUE         # even numbers are passed over in silence
+  ENDIF
+  REVEAL(n)
+ENDFOR
+```
+
+- In nested loops, `BREAK` releases only the innermost one. The outer cycle keeps turning.
+- Both words work in `FOR` and `WHILE` alike, and in the inline form: `IF n IS 0 THEN BREAK`.
+- `BREAK` and `CONTINUE` spoken with no loop around them are rejected when the scroll is read: *"BREAK can only be used inside a loop."*
+- A rite is a boundary: a `BREAK` inside a rite answers only to loops within that rite, never to the loop that called the rite.
+
 ## 9. Rites
 
 **DEFINE RITE** names a reusable blessing with parameters; **RETURN** sends a value back; **INVOKE** calls it as a statement, or call it bare inside any expression:

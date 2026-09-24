@@ -19,8 +19,10 @@ from godcode.ast import (
     Ascend,
     BinaryOp,
     Bless,
+    Break,
     Breathe,
     CallExpr,
+    Continue,
     CreationBlock,
     Declare,
     DeclareIntent,
@@ -47,6 +49,8 @@ from godcode.ast import (
 from godcode.environment import Environment
 from godcode.errors import (
     AscendSignal,
+    BreakSignal,
+    ContinueSignal,
     GodCodeError,
     GodRuntimeError,
     ReturnSignal,
@@ -216,7 +220,7 @@ class Interpreter:
             self._log_statement(stmt)
             try:
                 self._exec_stmt(stmt, env)
-            except (ReturnSignal, AscendSignal):
+            except (ReturnSignal, AscendSignal, BreakSignal, ContinueSignal):
                 raise  # control-flow signals pass through untouched
             except GodCodeError as err:
                 self._attach_line(err, getattr(stmt, "line", None))
@@ -265,6 +269,10 @@ class Interpreter:
             self._exec_for(stmt, env)
         elif isinstance(stmt, WhileLoop):
             self._exec_while(stmt, env)
+        elif isinstance(stmt, Break):
+            raise BreakSignal()
+        elif isinstance(stmt, Continue):
+            raise ContinueSignal()
         elif isinstance(stmt, DefineRite):
             env.define(stmt.name, RiteFunction(stmt.name, stmt.params, stmt.body, env))
         elif isinstance(stmt, Return):
@@ -433,7 +441,14 @@ class Interpreter:
         child = Environment(parent=env)  # one child env for the whole loop
         for item in items:
             child.define(stmt.var, item)
-            self._exec_block(stmt.body, child)
+            try:
+                self._exec_block(stmt.body, child)
+            except ContinueSignal:
+                continue  # next turn of this loop
+            except BreakSignal:
+                break  # the loop is released at once
+        # A BreakSignal is caught only here, so in nested loops it releases
+        # the innermost loop alone.
 
     def _exec_while(self, stmt: WhileLoop, env: Environment) -> None:
         line = getattr(stmt, "line", None)
@@ -448,7 +463,12 @@ class Interpreter:
                     "The loop is released.",
                     line,
                 )
-            self._exec_block(stmt.body, env)
+            try:
+                self._exec_block(stmt.body, env)
+            except ContinueSignal:
+                continue  # the condition is weighed again for the next turn
+            except BreakSignal:
+                break  # the cycle ends at once
 
     def _exec_import(self, stmt: Import, env: Environment) -> None:
         line = getattr(stmt, "line", None)
@@ -806,6 +826,17 @@ class Interpreter:
                 self._exec_block(rite.body, call_env)
             except ReturnSignal as ret:
                 return ret.value
+            except (BreakSignal, ContinueSignal) as sig:
+                # The parser binds every BREAK/CONTINUE to a lexically
+                # enclosing loop, so this is unreachable from parsed source.
+                # Programmatic ASTs reach it: loop signals never cross a
+                # rite boundary, they end here with a plain error.
+                word = "BREAK" if isinstance(sig, BreakSignal) else "CONTINUE"
+                raise GodRuntimeError(
+                    f"{word} cannot cross the threshold of a rite. It may "
+                    f"only release a loop within rite '{rite.name}' itself.",
+                    line,
+                ) from None
             return None
         finally:
             if self.debugger is not None:

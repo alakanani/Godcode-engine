@@ -403,6 +403,12 @@ class CanonicalFormatter:
         self._line("RETURN" if node.expr is None
                    else f"RETURN {self._expr(node.expr)}")
 
+    def _stmt_Break(self, node) -> None:
+        self._line("BREAK")
+
+    def _stmt_Continue(self, node) -> None:
+        self._line("CONTINUE")
+
     def _stmt_Import(self, node) -> None:
         self._line(f'IMPORT "{_escape(node.path)}"')
 

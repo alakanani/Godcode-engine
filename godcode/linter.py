@@ -22,7 +22,8 @@ Rules (stable ids, plain language):
   a name already visible from an outer scope.
 - GC004 empty block: IF/FOR/WHILE/DEFINE RITE with zero statements in a
   body (both the IF and ELSE bodies are checked).
-- GC005 unreachable code: any statement after RETURN in the same block.
+- GC005 unreachable code: any statement after RETURN, BREAK, or CONTINUE
+  in the same block.
 - GC006 re-DECLARE: the same name DECLAREd twice in the same scope. A
   re-DECLARE whose value uses the old value (the update idiom, e.g.
   DECLARE count AS count + 1) is not flagged, since that is the language's
@@ -189,13 +190,16 @@ class _Linter:
     # -- statement walking -----------------------------------------------
 
     def _walk_block(self, stmts: list, scope: _Scope) -> None:
-        returned = False
+        terminated_by = None  # the word that ended this block's flow
         for stmt in stmts:
-            if returned:
+            if terminated_by is not None:
                 self._finding(getattr(stmt, "line", 1), getattr(stmt, "col", 1),
-                              "GC005", "unreachable code after RETURN")
-            if type(stmt).__name__ == "Return":
-                returned = True
+                              "GC005",
+                              f"unreachable code after {terminated_by}")
+            kind = type(stmt).__name__
+            if kind in ("Return", "Break", "Continue"):
+                terminated_by = {"Return": "RETURN", "Break": "BREAK",
+                                 "Continue": "CONTINUE"}[kind]
             self._walk_stmt(stmt, scope)
 
     def _walk_stmt(self, stmt, scope: _Scope) -> None:
@@ -370,6 +374,14 @@ class _Linter:
     def _stmt_Return(self, node, scope: _Scope) -> None:
         if node.expr is not None:
             self._walk_expr(node.expr, scope)
+
+    def _stmt_Break(self, node, scope: _Scope) -> None:  # noqa: ARG002
+        # No names are read or bound; control passes to the enclosing loop.
+        return
+
+    def _stmt_Continue(self, node, scope: _Scope) -> None:  # noqa: ARG002
+        # No names are read or bound; control passes to the enclosing loop.
+        return
 
     def _stmt_Import(self, node, scope: _Scope) -> None:  # noqa: ARG002
         # Imports are resolved after the walk (see _resolve_imports).
