@@ -127,9 +127,17 @@ class SandboxPolicy:
 # rite to run. ANCHOR is deliberately absent: under a policy that denies
 # writes it is answered with an ephemeral in-memory chain (see
 # run_sandboxed_with_interpreter), so the rite itself never reaches the
-# filesystem and needs no grant.
+# filesystem and needs no grant. The vault builtins (godcode.stdlib_vault)
+# reach the host filesystem directly, so they are policed here too;
+# READ_FILE/LIST_DIR/FILE_EXISTS additionally enforce the granted
+# directories per path inside the builtins themselves.
 _SIDE_EFFECT_RITES: dict[str, str] = {
     "ASK": "allow_stdin",
+    "WRITE_FILE": "allow_write",
+    "READ_FILE": "allow_read_paths",
+    "LIST_DIR": "allow_read_paths",
+    "FILE_EXISTS": "allow_read_paths",
+    "HTTP_GET": "allow_network",
 }
 
 _HOOKS = ("_exec_stmt", "_eval_expr", "_call", "_exec_import")
@@ -163,10 +171,16 @@ class Sandbox:
     # -- installation ---------------------------------------------------
 
     def install(self) -> "Sandbox":
-        """Wrap the interpreter's dispatch points. Idempotent."""
+        """Wrap the interpreter's dispatch points. Idempotent.
+
+        Also marks the interpreter with ``_sandbox_guard`` so builtins
+        that reach the host world (the vault builtins in
+        godcode.stdlib_vault) can see the policy and honor its grants.
+        """
         interp = self.interpreter
         if self._originals:
             return self
+        interp._sandbox_guard = self
         for name in _HOOKS:
             original = getattr(interp, name)
             self._originals[name] = original
@@ -178,6 +192,7 @@ class Sandbox:
         for name, original in self._originals.items():
             setattr(self.interpreter, name, original)
         self._originals.clear()
+        self.interpreter.__dict__.pop("_sandbox_guard", None)
 
     def _wrap(self, name: str, original: Callable) -> Callable:
         if name == "_exec_stmt":
@@ -235,6 +250,11 @@ class Sandbox:
         if need is not None and not getattr(self.policy, need, False):
             divine = {
                 "ASK": "the rite ASK would speak with the outer world",
+                "WRITE_FILE": "the rite WRITE_FILE would write to the outer world",
+                "READ_FILE": "the rite READ_FILE would read from the outer world",
+                "LIST_DIR": "the rite LIST_DIR would read from the outer world",
+                "FILE_EXISTS": "the rite FILE_EXISTS would read from the outer world",
+                "HTTP_GET": "the rite HTTP_GET would reach out to the web",
             }.get(str(name).upper(), f"the rite {name}")
             raise SandboxViolation(
                 f"The sandbox withholds this power: {divine} — "

@@ -118,6 +118,7 @@ class IfStmt:
     cond: Expr
     then_body: list = field(default_factory=list)
     else_body: list = field(default_factory=list)
+    has_else: bool = False  # True when an ELSE keyword was actually written
     line: int = 1
     col: int = 1
 

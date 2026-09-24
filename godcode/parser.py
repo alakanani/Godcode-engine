@@ -293,8 +293,10 @@ class Parser:
             then_body = self._parse_body(end={TT.ENDIF, TT.ELSE},
                                         missing="ENDIF", opening=i)
             else_body: list = []
+            has_else = False
             if self._check(TT.ELSE):
                 self._advance()
+                has_else = True
                 self._skip_newlines()
                 else_body = self._parse_body(end={TT.ENDIF},
                                             missing="ENDIF", opening=i)
@@ -302,11 +304,13 @@ class Parser:
         else:
             then_body = [self._parse_statement()]
             else_body = []
+            has_else = False
             if self._check(TT.ELSE):
                 self._advance()
+                has_else = True
                 else_body = [self._parse_statement()]
         return A.IfStmt(cond=cond, then_body=then_body, else_body=else_body,
-                        line=i.line, col=i.col)
+                        has_else=has_else, line=i.line, col=i.col)
 
     def _parse_for(self) -> A.ForLoop:
         f = self._expect(TT.FOR)

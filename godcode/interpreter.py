@@ -125,6 +125,12 @@ class Interpreter:
         # and the REPL take).  GODCODE_NO_PLUGINS=1 disables this.
         if os.environ.get(plugins.DISABLE_ENV_VAR) != "1":
             self.loaded_plugins = plugins.load_plugins(self)
+        # v5.1: the stdlib pillars register their own builtins here so the
+        # interpreter core stays small. Each module's register() is idempotent.
+        from godcode import stdlib_times, stdlib_vault
+
+        stdlib_vault.register(self)
+        stdlib_times.register(self)
 
     # ------------------------------------------------- plugin verb registry
 

@@ -343,6 +343,51 @@ Always present, no import needed:
 | `ANCHOR` | `ANCHOR(x)` / `ANCHOR(x, chain)` | anchor a value's hash on a chain; returns a receipt map (see §26) |
 | `CONSULT` | `CONSULT("question")` | two to three sentences of counsel from the local Spirit oracle (see §27) |
 
+### Standard-library rites
+
+The standard library registers ten more rites at startup, in two parts:
+the vault (`godcode/stdlib_vault.py`: JSON and the filesystem) and
+time plus the web (`godcode/stdlib_times.py`). They are always present,
+no import needed.
+
+| Rite | Signature | Speaks |
+|---|---|---|
+| `DATE_TODAY` | `DATE_TODAY()` | today's local date: `"2026-09-24"` |
+| `TIME_NOW` | `TIME_NOW()` | the current local time, in ISO 8601 |
+| `FORMAT_DATE` | `FORMAT_DATE(date, pattern)` | a `"YYYY-MM-DD"` word shaped by a strftime pattern |
+| `HTTP_GET` | `HTTP_GET(url)` | the body of an HTTP GET, as a word |
+| `JSON_PARSE` | `JSON_PARSE(text)` | a JSON word parsed into numbers, words, lists, and maps (`null` → `void`) |
+| `JSON_STRING` | `JSON_STRING(value)` | a value rendered as compact JSON |
+| `READ_FILE` | `READ_FILE(path)` | a file's text, as a word |
+| `WRITE_FILE` | `WRITE_FILE(path, text)` | writes text to the file; returns the character count |
+| `FILE_EXISTS` | `FILE_EXISTS(path)` | `TRUE` when the path exists, `FALSE` otherwise |
+| `LIST_DIR` | `LIST_DIR(path)` | the directory's entry names, sorted |
+
+```godcode
+BEGIN CREATION
+  REVEAL(DATE_TODAY())                       # "2026-09-24"
+  REVEAL(FORMAT_DATE("2026-09-24", "%A"))    # "Thursday"
+  DECLARE tribes AS JSON_PARSE("[\"Judah\", \"Reuben\"]")
+  REVEAL(tribes[0])                          # "Judah"
+  REVEAL(JSON_STRING([1, 2]))                 # "[1,2]"
+  DECLARE count AS WRITE_FILE("note.txt", "peace")
+  IF FILE_EXISTS("note.txt") THEN
+    REVEAL(LIST_DIR("."))                    # sorted entry names
+  ENDIF
+  DECLARE psalm AS READ_FILE("psalm.txt")
+END CREATION
+```
+
+The names `DATE_TODAY` and `TIME_NOW` are chosen on purpose: the `time`
+scroll (§14) already defines rites named `NOW` and `TODAY`, and a builtin
+by either name would shadow them.
+
+`HTTP_GET` follows redirects and waits up to ten seconds. It is **blocked
+under `godcode run --sandbox`**: the sandbox withholds network power, so
+the rite raises instead of reaching out. The file rites are likewise
+bound by the sandbox's read and write grants (see §23 and
+`docs/sandbox.md`).
+
 ## 14. The Scrolls (Standard Library)
 
 Six scrolls ship inside the package at `godcode/scrolls/`, written **in God Code itself**. Import by bare name:

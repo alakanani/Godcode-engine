@@ -32,7 +32,7 @@ The sandbox withholds this power: the rite ASK would speak with the outer world 
 |---|---|---|
 | `allow_read_paths` | `None` (deny all) | Directories the creation may read files from. No file-reading rites exist in v2.0; enforced if any are added. |
 | `allow_write` | `False` | Filesystem writes. No file-writing rites exist in v2.0; enforced if any are added. |
-| `allow_network` | `False` | Network access. No network rites exist in v2.0; enforced if any are added. |
+| `allow_network` | `False` | Network access. The `HTTP_GET` rite (see §13) is the one network rite: when network is denied it is withheld and raises instead of reaching out. |
 | `allow_subprocess` | `False` | Spawning subprocesses. No subprocess rites exist in v2.0; enforced if any are added. |
 | `allow_stdin` | `False` | Whether the `ASK` rite may read from stdin. |
 | `allowed_import_paths` | `()` (deny all) | Directories `IMPORT` may draw scrolls from. A scroll is allowed when its real (symlink-resolved) path lies under one of these directories. |

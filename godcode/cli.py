@@ -162,6 +162,40 @@ def cmd_check(args: argparse.Namespace) -> int:
 
 
 # ---------------------------------------------------------------------------
+# lint
+# ---------------------------------------------------------------------------
+def cmd_lint(args: argparse.Namespace) -> int:
+    import json as _json
+
+    from godcode.errors import GodCodeError, format_error
+    from godcode.linter import lint_source
+
+    try:
+        source = Path(args.file).read_text(encoding="utf-8")
+    except OSError as exc:
+        print(f"godcode: cannot read '{args.file}': {exc.strerror or exc}",
+              file=sys.stderr)
+        return 1
+    try:
+        findings = lint_source(source, source_name=args.file)
+    except GodCodeError as err:
+        print(format_error(source, err), file=sys.stderr)
+        return 1
+
+    if getattr(args, "json", False):
+        print(_json.dumps(
+            {"tool": "godcode", "command": "lint", "file": args.file,
+             "ok": not findings,
+             "findings": [{"line": f.line, "col": f.col, "rule": f.rule,
+                           "message": f.message} for f in findings]},
+            ensure_ascii=False))
+        return 1 if findings else 0
+    for f in findings:
+        print(f"line {f.line}, col {f.col} [{f.rule}] {f.message}")
+    return 1 if findings else 0
+
+
+# ---------------------------------------------------------------------------
 # repl
 # ---------------------------------------------------------------------------
 def cmd_repl(args: argparse.Namespace) -> int:  # noqa: ARG001
@@ -654,6 +688,14 @@ def build_parser() -> argparse.ArgumentParser:
                        action="store_true",
                        help="Rewrite the file instead of printing")
     p_fmt.set_defaults(func=cmd_fmt)
+
+    p_lint = sub.add_parser("lint",
+                            help="Lint a scroll for unused names, shadowing, "
+                                 "empty blocks, and other quiet troubles")
+    p_lint.add_argument("file", help="Path to the .god scroll")
+    p_lint.add_argument("--json", action="store_true",
+                        help="Emit a machine-readable JSON report on stdout")
+    p_lint.set_defaults(func=cmd_lint)
 
     p_ledger = sub.add_parser("ledger", help="Covenant ledger commands")
     ledger_sub = p_ledger.add_subparsers(dest="ledger_command", required=True)
