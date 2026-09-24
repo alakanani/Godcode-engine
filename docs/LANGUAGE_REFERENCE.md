@@ -155,6 +155,34 @@ SEAL covenant      # [SEAL] Covenant sealed · block 3 · a1b2c3d4 🔒
 ### `TESTIFY expr`
 If the expression is truthy: `[TESTIFY] It is true. ✝`. If falsy, the testimony fails and the creation halts with an error.
 
+### `TRY` … `CATCH` … `ENDTRY`
+A sheltered work: the `TRY` block runs first, and if a **runtime error** rises anywhere inside it, execution jumps to the `CATCH` block. Errors rise up through rite calls, so a `TRY` also catches failures from rites invoked inside it. If no error rises, the `CATCH` block is skipped; afterwards the creation continues after `ENDTRY`.
+
+```godcode
+TRY
+  REVEAL(fragile_work())
+CATCH
+  REVEAL("the work stumbled: {ERROR}")
+ENDTRY
+```
+
+The error's plain message is bound for the `CATCH` to speak of. `CATCH` alone binds it to `ERROR`; `CATCH name` binds it to a name of your choosing:
+
+```godcode
+TRY
+  DECLARE share AS harvest / workers
+CATCH trouble
+  REVEAL("no harvest today: {trouble}")
+ENDTRY
+```
+
+What `TRY` catches, and what it does not:
+
+- Only **runtime errors** (`GodRuntimeError`) are caught. Parse and lexer errors still fail before the creation runs.
+- `RETURN` inside a `TRY` still returns from its rite, and `ASCEND` still ends the run in peace. Neither is ever caught.
+- Sandbox boundaries are never caught: a `SandboxViolation` (a denied power under `--sandbox`) rises straight through any `TRY`.
+- `TRY` blocks nest freely; the innermost `CATCH` handles the innermost error. An error raised inside a `CATCH` block rises outward normally.
+
 ## 6. Operators
 
 ### Arithmetic
@@ -509,6 +537,36 @@ There is no rite named 'BLESSIN' — the heavens do not know it. Did you mean 'B
 ```
 
 `godcode run`, `godcode run --sandbox`, `godcode check`, and `godcode fmt` print the offending line beneath the message, with a caret marking the column when one is known. The same suggestion also rides along in the `message` field of `check --json` and `run --json` diagnostics, so agents see it too.
+
+### Call traces for uncaught errors
+
+When a runtime error escapes every `TRY` and rises through rite calls, the human CLI prints the call stack beneath the gentle error, oldest call first:
+
+```text
+Division by nothing is not permitted — even the heavens cannot split the void. (line 3)
+  3 |   DECLARE x AS 1 / 0
+Called by outer at line 11
+Called by middle at line 9
+Called by innermost at line 6
+(most recent call last)
+```
+
+Each line names the rite and the line where it was called. An error raised at the top level, with no rite calls above it, shows no trace section. In `run --json`, the same stack rides in the error object as a `trace` array of `{rite, line}` objects, oldest call first:
+
+```json
+"error": {
+  "line": 3,
+  "code": "RUNTIME_ERROR",
+  "message": "Division by nothing is not permitted — even the heavens cannot split the void.",
+  "trace": [
+    {"rite": "outer", "line": 11},
+    {"rite": "middle", "line": 9},
+    {"rite": "innermost", "line": 6}
+  ]
+}
+```
+
+Every other field of the error object is unchanged.
 
 ## 20. Two Annotated Programs
 

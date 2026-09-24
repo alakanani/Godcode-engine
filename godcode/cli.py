@@ -14,6 +14,22 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 # run
 # ---------------------------------------------------------------------------
+def _print_run_error(source: str, err) -> None:
+    """Print a failed run's error the gentle way, then the call trace.
+
+    The gentle rendering (message, line/col, source line, caret,
+    Did-you-mean) is preserved exactly; the trace goes underneath in plain
+    words. Errors raised at the top level carry an empty trace and show no
+    trace section.
+    """
+    from godcode.errors import format_call_trace, format_error
+
+    print(format_error(source, err), file=sys.stderr)
+    trace = list(getattr(err, "call_trace", None) or [])
+    for line in format_call_trace(trace):
+        print(line, file=sys.stderr)
+
+
 # --- v3: agentics --json ---
 def _make_interpreter(log_path):
     """Build an Interpreter the way `godcode run` always has, shared by the
@@ -40,7 +56,7 @@ def _make_interpreter(log_path):
 
 
 def cmd_run(args: argparse.Namespace) -> int:
-    from godcode.errors import GodCodeError, format_error
+    from godcode.errors import GodCodeError
 
     # --- v3: sandbox commands ---
     if getattr(args, "sandbox", False):
@@ -63,7 +79,7 @@ def cmd_run(args: argparse.Namespace) -> int:
     try:
         _make_interpreter(args.log).run_source(source, source_name=args.file)
     except GodCodeError as err:
-        print(format_error(source, err), file=sys.stderr)
+        _print_run_error(source, err)
         return 1
     return 0
 
@@ -77,7 +93,7 @@ def _cmd_run_sandboxed(args: argparse.Namespace) -> int:
     reads the scroll file before the sandbox is entered — that read is
     the invoker's own act, not the creation's.
     """
-    from godcode.errors import GodCodeError, format_error
+    from godcode.errors import GodCodeError
     from godcode.sandbox import SandboxPolicy, run_sandboxed
 
     try:
@@ -118,6 +134,7 @@ def _cmd_run_sandboxed(args: argparse.Namespace) -> int:
                 intents = list(getattr(interp, "intent_checks", []) or [])
             except GodCodeError as err:
                 error = agentics.diagnostic(err)
+                error["trace"] = agentics.error_trace(err)
         ms = int((_time.perf_counter() - start) * 1000)
         agentics.emit(agentics.run_payload(
             args.file, error is None, output, [], error, ms,
@@ -126,7 +143,7 @@ def _cmd_run_sandboxed(args: argparse.Namespace) -> int:
     try:
         run_sandboxed(source, policy, source_name=args.file)
     except GodCodeError as err:
-        print(format_error(source, err), file=sys.stderr)
+        _print_run_error(source, err)
         return 1
     return 0
 # --- end v3: sandbox commands ---
@@ -246,7 +263,8 @@ _PRECEDENCE = {
     "+": 4, "-": 4, "*": 5, "/": 5, "%": 5,
 }
 _UNARY_PREC = 6
-_BLOCK_NODES = {"CreationBlock", "IfStmt", "ForLoop", "WhileLoop", "DefineRite"}
+_BLOCK_NODES = {"CreationBlock", "IfStmt", "ForLoop", "WhileLoop",
+               "DefineRite", "TryStmt"}
 
 
 def _escape(text: str) -> str:
@@ -392,6 +410,16 @@ class CanonicalFormatter:
         self._line(f"WHILE {self._expr(node.cond)} DO")
         self._block(node.body)
         self._line("ENDWHILE")
+
+    def _stmt_TryStmt(self, node) -> None:
+        self._line("TRY")
+        self._block(node.try_body)
+        if node.error_name == "ERROR":
+            self._line("CATCH")
+        else:
+            self._line(f"CATCH {node.error_name}")
+        self._block(node.catch_body)
+        self._line("ENDTRY")
 
     def _stmt_DefineRite(self, node) -> None:
         params = ", ".join(node.params)

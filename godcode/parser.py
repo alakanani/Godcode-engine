@@ -15,6 +15,7 @@ Statement forms (spec §4):
 - IF expr THEN ... (block: ENDIF / inline)          -> IfStmt
 - FOR name IN expr ... (block: ENDFOR / legacy open / inline) -> ForLoop
 - WHILE expr DO ... (block: ENDWHILE / inline)      -> WhileLoop
+- TRY ... CATCH [name] ... ENDTRY (block)           -> TryStmt
 - DEFINE RITE name(params) ... END RITE (block or inline) -> DefineRite
 - RETURN expr?                        -> Return
 - IMPORT "path"                       -> Import
@@ -43,6 +44,7 @@ _EXPR_STARTS = {
 # Tokens after which RETURN takes no expression.
 _RETURN_TERMINATORS = {
     TT.NEWLINE, TT.EOF, TT.END, TT.ENDIF, TT.ELSE, TT.ENDFOR, TT.ENDWHILE,
+    TT.CATCH, TT.ENDTRY,
 }
 
 
@@ -204,6 +206,8 @@ class Parser:
             return self._parse_for()
         if tt is TT.WHILE:
             return self._parse_while()
+        if tt is TT.TRY:
+            return self._parse_try()
         if tt is TT.DEFINE:
             return self._parse_define_rite()
         if tt is TT.RETURN:
@@ -338,6 +342,28 @@ class Parser:
         else:
             body = [self._parse_statement()]
         return A.WhileLoop(cond=cond, body=body, line=w.line, col=w.col)
+
+    def _parse_try(self) -> A.TryStmt:
+        t = self._expect(TT.TRY)
+        if not self._check(TT.NEWLINE):
+            raise ParseError(
+                "TRY opens a block: place its works on the following lines, "
+                "then CATCH ... ENDTRY",
+                line=t.line, col=t.col,
+            )
+        self._skip_newlines()
+        try_body = self._parse_body(end={TT.CATCH}, missing="CATCH", opening=t)
+        self._expect(TT.CATCH)
+        if self._check(TT.IDENT):
+            error_name = self._advance().value
+        else:
+            error_name = "ERROR"
+        self._skip_newlines()
+        catch_body = self._parse_body(end={TT.ENDTRY}, missing="ENDTRY",
+                                      opening=t)
+        self._expect(TT.ENDTRY)
+        return A.TryStmt(try_body=try_body, catch_body=catch_body,
+                         error_name=error_name, line=t.line, col=t.col)
 
     def _parse_define_rite(self) -> A.DefineRite:
         d = self._expect(TT.DEFINE)
