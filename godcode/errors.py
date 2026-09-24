@@ -11,6 +11,8 @@ interpreter can never accidentally swallow a return or an ascension.
 
 from __future__ import annotations
 
+import difflib
+
 
 class GodCodeError(Exception):
     """Base class for every God Code failure. ``line``/``col`` are 1-based."""
@@ -67,3 +69,49 @@ class ReturnSignal(Exception):
 
 class AscendSignal(Exception):
     """Raised by ASCEND; ends the creation in peace."""
+
+
+def suggest_similar(name, candidates, *, n: int = 1, cutoff: float = 0.6):
+    """Return the closest candidate to *name*, or None when nothing is close.
+
+    Matching is case-insensitive; the returned candidate keeps its own
+    casing. Used so the heavens can answer a misspelled name with a
+    gentle \"Did you mean ...?\" instead of a bare rejection.
+    """
+    wanted = str(name).lower()
+    lowered = {}
+    for candidate in candidates:
+        lowered.setdefault(str(candidate).lower(), str(candidate))
+    if wanted in lowered:
+        return None  # an exact name needs no suggestion
+    matches = difflib.get_close_matches(wanted, list(lowered), n=n, cutoff=cutoff)
+    return lowered[matches[0]] if matches else None
+
+
+def with_suggestion(message: str, name, candidates) -> str:
+    """Append a gentle \"Did you mean 'X'?\" to *message* when one fits."""
+    suggestion = suggest_similar(name, candidates)
+    if suggestion is None:
+        return message
+    return f"{message} Did you mean '{suggestion}'?"
+
+
+def format_error(source: str, err: GodCodeError) -> str:
+    """Render an error for a human: the message, then the offending line.
+
+    The offending source line is shown with a gutter, and a caret marks the
+    column when one is known. Quietly degrades to the bare message when the
+    line or column cannot be shown.
+    """
+    lines = [str(err)]
+    line_no = getattr(err, "line", None)
+    if isinstance(line_no, int) and line_no >= 1:
+        src_lines = source.splitlines()
+        if line_no <= len(src_lines):
+            text = src_lines[line_no - 1]
+            gutter = f"  {line_no} | "
+            lines.append(gutter + text)
+            col = getattr(err, "col", None)
+            if isinstance(col, int) and 1 <= col <= len(text) + 1:
+                lines.append(" " * len(gutter) + " " * (col - 1) + "^")
+    return "\n".join(lines)

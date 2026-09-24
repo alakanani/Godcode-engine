@@ -7,6 +7,11 @@ All notable changes to the God Code engine are recorded here, that the generatio
 ## Unreleased
 
 ### Added
+- **🕊️ Gentler errors** — a misspelled name is now answered with a suggestion instead of a bare rejection: `There is no rite named 'BLESSIN' — the heavens do not know it. Did you mean 'BLESSING'?` Suggestions cover unknown rites (including builtins like `UPPER`), `BREATHE LIFE INTO` / `BLESS` / `ANOINT` targets, `RESHAPE` targets, and missing map keys. `godcode run`, `godcode run --sandbox`, `godcode check`, and `godcode fmt` now print the offending source line beneath the message, with a caret marking the column when one is known. The suggestion also rides along in the `message` field of `check --json` / `run --json` diagnostics. New `godcode.errors.suggest_similar` / `with_suggestion` / `format_error` helpers; new `### The Spirit corrects gently` in `docs/LANGUAGE_REFERENCE.md` §19; a matching lesson on the site learn page; agent gotcha in repo `AGENTS.md`
+
+### Changed
+- `ENVIRONMENT.set_existing` (the RESHAPE path) now suggests the nearest visible name
+- LANGUAGE_REFERENCE §19's error table updated to the messages the engine actually speaks
 - **💬 String interpolation** — `{expr}` inside a double-quoted string breathes the expression's revealed value into the words: `"grace upon {name}"`, `"{loaves} loaves feed {loaves * 1000}"`, `"shouted: {UPPER(name)}"`. Any expression may dwell between the braces, including nested interpolated strings. `{{` and `}}` write a plain brace; a lone `}` stays as it is. A brace that is never closed, or braces with nothing between them, raise a gentle parse error that names the line. Works in the sandbox, in rites, and in `godcode fmt` (which round-trips interpolated strings untouched). New example `examples/interpolation_demo.god`; new `### Breathing values into strings` in `docs/LANGUAGE_REFERENCE.md` §3; a "Speak with feeling" lesson on the site learn page; and the in-browser playground now runs interpolation too, with a new "Speaking with Feeling" sample
 - **Agent gotcha** — repo `AGENTS.md` notes the interpolation rule so agents generating God Code use it correctly
 

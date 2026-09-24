@@ -40,7 +40,7 @@ def _make_interpreter(log_path):
 
 
 def cmd_run(args: argparse.Namespace) -> int:
-    from godcode.errors import GodCodeError
+    from godcode.errors import GodCodeError, format_error
 
     # --- v3: sandbox commands ---
     if getattr(args, "sandbox", False):
@@ -63,7 +63,7 @@ def cmd_run(args: argparse.Namespace) -> int:
     try:
         _make_interpreter(args.log).run_source(source, source_name=args.file)
     except GodCodeError as err:
-        print(str(err), file=sys.stderr)
+        print(format_error(source, err), file=sys.stderr)
         return 1
     return 0
 
@@ -77,7 +77,7 @@ def _cmd_run_sandboxed(args: argparse.Namespace) -> int:
     reads the scroll file before the sandbox is entered — that read is
     the invoker's own act, not the creation's.
     """
-    from godcode.errors import GodCodeError
+    from godcode.errors import GodCodeError, format_error
     from godcode.sandbox import SandboxPolicy, run_sandboxed
 
     try:
@@ -126,7 +126,7 @@ def _cmd_run_sandboxed(args: argparse.Namespace) -> int:
     try:
         run_sandboxed(source, policy, source_name=args.file)
     except GodCodeError as err:
-        print(str(err), file=sys.stderr)
+        print(format_error(source, err), file=sys.stderr)
         return 1
     return 0
 # --- end v3: sandbox commands ---
@@ -136,7 +136,7 @@ def _cmd_run_sandboxed(args: argparse.Namespace) -> int:
 # check
 # ---------------------------------------------------------------------------
 def cmd_check(args: argparse.Namespace) -> int:
-    from godcode.errors import GodCodeError
+    from godcode.errors import GodCodeError, format_error
     from godcode.lexer import Lexer
     from godcode.parser import Parser
 
@@ -155,7 +155,7 @@ def cmd_check(args: argparse.Namespace) -> int:
     try:
         Parser(Lexer(source).lex()).parse()
     except GodCodeError as err:
-        print(str(err), file=sys.stderr)
+        print(format_error(source, err), file=sys.stderr)
         return 1
     print(f"✓ {args.file} is pure.")
     return 0
@@ -165,7 +165,7 @@ def cmd_check(args: argparse.Namespace) -> int:
 # repl
 # ---------------------------------------------------------------------------
 def cmd_repl(args: argparse.Namespace) -> int:  # noqa: ARG001
-    from godcode.errors import GodCodeError
+    from godcode.errors import GodCodeError, format_error
     from godcode.interpreter import Interpreter
 
     try:
@@ -382,7 +382,7 @@ class CanonicalFormatter:
 
 
 def cmd_fmt(args: argparse.Namespace) -> int:
-    from godcode.errors import GodCodeError
+    from godcode.errors import GodCodeError, format_error
     from godcode.lexer import Lexer
     from godcode.parser import Parser
 
@@ -396,7 +396,7 @@ def cmd_fmt(args: argparse.Namespace) -> int:
     try:
         program = Parser(Lexer(source).lex()).parse()
     except GodCodeError as err:
-        print(str(err), file=sys.stderr)
+        print(format_error(source, err), file=sys.stderr)
         return 1
 
     canonical = CanonicalFormatter().format(program)

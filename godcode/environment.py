@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from typing import Iterator
 
-from godcode.errors import GodRuntimeError
+from godcode.errors import GodRuntimeError, with_suggestion
 from godcode.values import Symbol
 
 
@@ -54,7 +54,11 @@ class Environment:
                 return
             env = env.parent
         raise GodRuntimeError(
-            f"There is no '{name}' to reshape — it was never spoken into being."
+            with_suggestion(
+                f"There is no '{name}' to reshape — it was never spoken into being.",
+                name,
+                self.names(),
+            )
         )
 
     def names(self) -> list[str]:

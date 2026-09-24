@@ -45,7 +45,13 @@ from godcode.ast import (
     WhileLoop,
 )
 from godcode.environment import Environment
-from godcode.errors import AscendSignal, GodCodeError, GodRuntimeError, ReturnSignal
+from godcode.errors import (
+    AscendSignal,
+    GodCodeError,
+    GodRuntimeError,
+    ReturnSignal,
+    with_suggestion,
+)
 from godcode.lexer import Lexer
 from godcode.parser import Parser
 from godcode import plugins
@@ -267,8 +273,12 @@ class Interpreter:
         line = getattr(stmt, "line", None)
         if not env.is_bound(stmt.name):
             raise GodRuntimeError(
-                f"There is no '{stmt.name}' to breathe into — "
-                "it was never spoken into being.",
+                with_suggestion(
+                    f"There is no '{stmt.name}' to breathe into — "
+                    "it was never spoken into being.",
+                    stmt.name,
+                    env.names(),
+                ),
                 line,
             )
         target = env.get(stmt.name)
@@ -297,7 +307,11 @@ class Interpreter:
         verb = "bless" if kind == "bless" else "anoint"
         if not env.is_bound(name):
             raise GodRuntimeError(
-                f"There is no '{name}' to {verb} — it was never spoken into being.",
+                with_suggestion(
+                    f"There is no '{name}' to {verb} — it was never spoken into being.",
+                    name,
+                    env.names(),
+                ),
                 line,
             )
         target = env.get(name)
@@ -545,7 +559,11 @@ class Interpreter:
             if key not in obj:
                 known = ", ".join(obj) or "it holds nothing"
                 raise GodRuntimeError(
-                    f"The map holds no '{key}' — its keys are: {known}.",
+                    with_suggestion(
+                        f"The map holds no '{key}' — its keys are: {known}.",
+                        key,
+                        list(obj),
+                    ),
                     line,
                 )
             return obj[key]
@@ -731,8 +749,17 @@ class Interpreter:
                 f"'{name}' is {self.type_name(target)}, not a rite — it cannot be invoked.",
                 line,
             )
+        rite_names = [
+            rite_name
+            for rite_name in env.names()
+            if isinstance(env.get(rite_name), RiteFunction)
+        ]
         raise GodRuntimeError(
-            f"There is no rite named '{name}' — the heavens do not know it.",
+            with_suggestion(
+                f"There is no rite named '{name}' — the heavens do not know it.",
+                name,
+                rite_names + list(self._builtins),
+            ),
             line,
         )
 

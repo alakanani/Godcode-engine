@@ -446,13 +446,24 @@ Common rejections you may meet:
 |---|---|
 | `1 / 0` | *…division by nothing is not permitted / cannot divide by nothing* |
 | `BREATHE LIFE INTO ghost` | *there is no `ghost` to breathe into* |
-| `INVOKE MISSING()` | *no such rite: `MISSING`* |
+| `INVOKE MISSING()` | *There is no rite named 'MISSING' — the heavens do not know it* (plus `Did you mean …?` when a close name exists) |
 | `xs[99]` | *index out of range* |
 | `TESTIFY(0)` | *testimony failed* |
 | endless `WHILE` | *the cycle is endless* (after 100,000 turns) |
 | `1 + "a"` on wrong types | *cannot join … and …* |
 
 Parse errors name the expected versus the found, with line and column.
+
+### The Spirit corrects gently
+
+A misspelled name is answered with a suggestion, never scorn:
+
+```text
+There is no rite named 'BLESSIN' — the heavens do not know it. Did you mean 'BLESSING'? (line 5)
+  5 |   INVOKE BLESSIN("seeker")
+```
+
+`godcode run`, `godcode run --sandbox`, `godcode check`, and `godcode fmt` print the offending line beneath the message, with a caret marking the column when one is known. The same suggestion also rides along in the `message` field of `check --json` and `run --json` diagnostics, so agents see it too.
 
 ## 20. Two Annotated Programs
 

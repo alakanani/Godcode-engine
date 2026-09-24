@@ -57,6 +57,10 @@ godcode ledger verify     # verify the covenant chain
 - `ASCEND` ends the run peacefully (not an error).
 - An unbound name evaluates to a Symbol, it does not raise — `BREATHE LIFE INTO`
   an undeclared name *does* raise at runtime.
+- Error messages may end with `Did you mean 'X'?` (misspelled rite, variable,
+  bless target, or map key). The human CLI (`run`, `run --sandbox`, `check`,
+  `fmt`) prints the offending source line beneath the message, with a caret at
+  the column when known.
 - Division by zero is rejected: "division by nothing is not permitted".
 
 ## Error codes (`--json`)

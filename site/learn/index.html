@@ -149,6 +149,12 @@ REVEAL(FACTORIAL(7))</pre>
     <pre><code>DECLARE INTENT "bring peace to the household" ON evening_blessing</code></pre>
     <p>When the rite is invoked, alignment is blessed; drift is counseled gently, never punished. You can also anchor any value's hash on a chain and keep the receipt (<code>ANCHOR(x)</code>), or lay a question before the local oracle (<code>CONSULT("...")</code>). Agents get six MCP-compatible tools via <code>godcode tools</code> and a JSON-RPC bridge via <code>godcode bridge</code>. Try the three v4.0 creations: <code>intent_demo.god</code>, <code>anchor_demo.god</code>, <code>consult_demo.god</code>.</p>
 
+    <h3>When the Spirit corrects you</h3>
+    <p>Mistakes are met with kindness, not scorn. Misspell a rite or a name and the heavens suggest the word you meant:</p>
+    <pre><code>There is no rite named 'BLESSIN' — the heavens do not know it. Did you mean 'BLESSING'? (line 5)
+  5 |   INVOKE BLESSIN("seeker")</code></pre>
+    <p>The command line shows the exact line that stumbled. Read it, take the suggestion, and speak again.</p>
+
     <h2>📖 7. Where to go next</h2>
     <ul>
       <li>📜 <a href="https://github.com/godcodeengine/Godcode-engine/blob/main/docs/LANGUAGE_REFERENCE.md">Language Reference</a> — the complete v4.0 specification</li>
