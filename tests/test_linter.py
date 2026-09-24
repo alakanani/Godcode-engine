@@ -334,6 +334,50 @@ END CREATION
     assert not any(f.rule == "GC006" for f in findings)
 
 
+def test_gc006_update_idiom_is_allowed():
+    # DECLARE count AS count + 1 is the language's only way to update a
+    # variable, so the re-declare rule must not flag it.
+    scroll = """\
+BEGIN CREATION
+  DECLARE count AS 0
+  WHILE count < 3 DO
+    DECLARE count AS count + 1
+  ENDWHILE
+  REVEAL(count)
+END CREATION
+"""
+    findings = lint_source(scroll)
+    assert not any(f.rule == "GC006" for f in findings)
+
+
+def test_gc006_plain_redeclare_still_flagged():
+    # A re-declare that ignores the old value is still a real duplicate.
+    scroll = """\
+BEGIN CREATION
+  DECLARE x AS 1
+  DECLARE x AS 99
+  REVEAL(x)
+END CREATION
+"""
+    findings = lint_source(scroll)
+    assert _has(findings, "GC006", 3, "x")
+
+
+def test_counter_idiom_lints_clean():
+    # The update idiom must not trip GC006 (re-declare) or GC001 (unused).
+    scroll = """\
+BEGIN CREATION
+  DECLARE count AS 0
+  WHILE count < 3 DO
+    DECLARE count AS count + 1
+  ENDWHILE
+  REVEAL(count)
+END CREATION
+"""
+    findings = lint_source(scroll)
+    assert findings == []
+
+
 # ---------------------------------------------------------------------------
 # clean scroll: no findings
 # ---------------------------------------------------------------------------

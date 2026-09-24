@@ -23,7 +23,10 @@ Rules (stable ids, plain language):
 - GC004 empty block: IF/FOR/WHILE/DEFINE RITE with zero statements in a
   body (both the IF and ELSE bodies are checked).
 - GC005 unreachable code: any statement after RETURN in the same block.
-- GC006 re-DECLARE: the same name DECLAREd twice in the same scope.
+- GC006 re-DECLARE: the same name DECLAREd twice in the same scope. A
+  re-DECLARE whose value uses the old value (the update idiom, e.g.
+  DECLARE count AS count + 1) is not flagged, since that is the language's
+  only way to update a variable.
 
 Unknown AST node types are traversed generically and never raise.
 """
@@ -150,12 +153,15 @@ class _Linter:
         return False
 
     def _declare(self, scope: _Scope, name: str, kind: str,
-                 line: int, col: int) -> _Decl:
+                 line: int, col: int, value=None) -> _Decl:
         decl = _Decl(name=name, kind=kind, line=line, col=col)
         bucket = scope.decls.setdefault(name, [])
         if kind == _DECLARE and any(d.kind == _DECLARE for d in bucket):
-            self._finding(line, col, "GC006",
-                          f"'{name}' is declared more than once in the same scope")
+            # The update idiom (DECLARE x AS <expr using x>) is the only
+            # way to change a variable, so it is not a re-declaration.
+            if value is None or not self._expr_mentions(value, name):
+                self._finding(line, col, "GC006",
+                              f"'{name}' is declared more than once in the same scope")
         elif kind in (_DECLARE, _PARAM, _LOOP) and self._visible_in_outer(scope, name):
             self._finding(line, col, "GC003",
                           f"'{name}' shadows a name already visible from an outer scope")
@@ -249,7 +255,44 @@ class _Linter:
         # The value is breathed in the enclosing scope, before the name
         # itself is bound (mirrors env.define(name, eval(value, env))).
         self._walk_expr(node.value, scope)
-        self._declare(scope, node.name, _DECLARE, node.line, node.col)
+        self._declare(scope, node.name, _DECLARE, node.line, node.col,
+                      value=node.value)
+
+    def _expr_mentions(self, expr, name: str) -> bool:
+        """True when the expression reads the given name anywhere inside."""
+        if expr is None or isinstance(expr, str):
+            return False
+        kind = type(expr).__name__
+        if kind == "Identifier":
+            return expr.name == name
+        if kind == "CallExpr":
+            return expr.callee == name or any(
+                self._expr_mentions(a, name) for a in expr.args)
+        if kind == "BinaryOp":
+            return (self._expr_mentions(expr.left, name)
+                    or self._expr_mentions(expr.right, name))
+        if kind == "UnaryOp":
+            return self._expr_mentions(expr.operand, name)
+        if kind == "InterpolatedString":
+            return any(not isinstance(p, str) and self._expr_mentions(p, name)
+                       for p in expr.parts)
+        if kind == "ListLiteral":
+            return any(self._expr_mentions(i, name) for i in expr.items)
+        if kind == "Index":
+            return (self._expr_mentions(expr.obj, name)
+                    or self._expr_mentions(expr.index, name))
+        # Unknown node types: walk their fields generically.
+        try:
+            fields = vars(expr)
+        except TypeError:
+            return False
+        for v in fields.values():
+            if isinstance(v, list):
+                if any(self._expr_mentions(i, name) for i in v):
+                    return True
+            elif self._expr_mentions(v, name):
+                return True
+        return False
 
     def _stmt_DeclareIntent(self, node, scope: _Scope) -> None:
         # Names a rite's purpose; marks the rite used but never flags GC002.
@@ -447,9 +490,13 @@ class _Linter:
 
     def _resolve_refs(self) -> None:
         for scope, ref in self.refs:
-            target = self._resolve(scope, ref.name)
-            if target is not None:
-                target.used = True
+            bucket = self._resolve(scope, ref.name)
+            if bucket is not None:
+                # Mark every declaration in the bucket used: a re-declared
+                # name's value reads the older binding (DECLARE x AS x + 1),
+                # so all of them take part in the program's life.
+                for decl in bucket:
+                    decl.used = True
                 continue
             if ref.kind != "read":
                 continue
@@ -463,14 +510,14 @@ class _Linter:
                           f"undefined name '{ref.name}'")
 
     @staticmethod
-    def _resolve(scope: _Scope, name: str) -> "_Decl | None":
+    def _resolve(scope: _Scope, name: str) -> "list | None":
         env: "_Scope | None" = scope
         while env is not None:
             bucket = env.decls.get(name)
             if bucket:
                 # The runtime's env.define overwrites, so the last
                 # declaration in the innermost scope is the live one.
-                return bucket[-1]
+                return bucket
             env = env.parent
         return None
 
