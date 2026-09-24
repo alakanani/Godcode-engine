@@ -33,6 +33,8 @@ class TokenType(Enum):
     WHILE = auto()
     DO = auto()
     ENDWHILE = auto()
+    BREAK = auto()
+    CONTINUE = auto()
     DEFINE = auto()
     RITE = auto()
     INVOKE = auto()

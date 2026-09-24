@@ -141,6 +141,20 @@ class WhileLoop:
 
 
 @dataclass
+class Break:
+    """BREAK — release the innermost enclosing loop at once."""
+    line: int = 1
+    col: int = 1
+
+
+@dataclass
+class Continue:
+    """CONTINUE — skip to the next turn of the innermost enclosing loop."""
+    line: int = 1
+    col: int = 1
+
+
+@dataclass
 class DefineRite:
     name: str
     params: list = field(default_factory=list)  # list[str]

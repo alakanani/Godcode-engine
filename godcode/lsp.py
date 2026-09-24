@@ -142,6 +142,18 @@ LSP_DOCS: dict[str, str] = {
         "**ENDWHILE**\n\n"
         "The seal upon a `WHILE` vigil.\n\n```godcode\nENDWHILE\n```"
     ),
+    "BREAK": (
+        "**BREAK**\n\n"
+        "Release the innermost enclosing `FOR` or `WHILE` loop at once. "
+        "It can only be spoken within a loop.\n\n"
+        "```godcode\nFOR star IN heavens\n  IF star IS dim THEN\n    BREAK\n  ENDIF\nENDFOR\n```"
+    ),
+    "CONTINUE": (
+        "**CONTINUE**\n\n"
+        "Skip to the next turn of the innermost enclosing `FOR` or "
+        "`WHILE` loop. It can only be spoken within a loop.\n\n"
+        "```godcode\nFOR n IN RANGE(10)\n  IF n % 2 IS 0 THEN\n    CONTINUE\n  ENDIF\n  REVEAL(n)\nENDFOR\n```"
+    ),
     "DEFINE": (
         "**DEFINE**\n\n"
         "The first word of a rite's establishment — always paired with "
