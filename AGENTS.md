@@ -31,6 +31,8 @@ confines execution; `--json` composes with plain `run`/`check` too.
 ## Share scrolls
 
 ```bash
+godcode new my-scroll      # raise a project: main.god, test_main.god,
+                           # scroll.toml, README.md (--json for agents)
 godcode scroll …          # install / publish / verify scrolls in the registry
 godcode ledger verify     # verify the covenant chain
 ```

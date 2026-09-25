@@ -235,6 +235,43 @@ def cmd_test(args: argparse.Namespace) -> int:
 
 
 # ---------------------------------------------------------------------------
+# new — raise a fresh God Code project
+# ---------------------------------------------------------------------------
+def cmd_new(args: argparse.Namespace) -> int:
+    import json as _json
+
+    from godcode.scaffold import ScaffoldError, create_project
+
+    try:
+        result = create_project(args.name, dest=args.path, author=args.author)
+    except ScaffoldError as exc:
+        if getattr(args, "json", False):
+            print(_json.dumps({"tool": "godcode", "command": "new",
+                               "ok": False, "error": str(exc)},
+                              ensure_ascii=False))
+        else:
+            print(f"godcode: {exc}", file=sys.stderr)
+        return 1
+    if getattr(args, "json", False):
+        print(_json.dumps({
+            "tool": "godcode", "command": "new", "ok": True,
+            "name": result.name,
+            "directory": str(result.directory),
+            "files": result.files,
+        }, ensure_ascii=False))
+        return 0
+    print(f"🕊 A new scroll rises: {result.directory}")
+    for filename in result.files:
+        print(f"  wrote {result.directory / filename}")
+    print("")
+    print("Next steps:")
+    print(f"  cd {result.directory}")
+    print("  godcode run main.god   # speak it")
+    print("  godcode test .         # test it")
+    return 0
+
+
+# ---------------------------------------------------------------------------
 # repl
 # ---------------------------------------------------------------------------
 def cmd_repl(args: argparse.Namespace) -> int:  # noqa: ARG001
@@ -763,6 +800,20 @@ def build_parser() -> argparse.ArgumentParser:
     p_test.add_argument("--json", action="store_true",
                         help="Emit a machine-readable JSON report on stdout")
     p_test.set_defaults(func=cmd_test)
+
+    p_new = sub.add_parser(
+        "new",
+        help="Raise a new God Code project (starter scroll, test scroll, "
+             "scroll manifest, README)")
+    p_new.add_argument("name", help="Project name (lowercase, e.g. my-scroll)")
+    p_new.add_argument("--path", default=".", metavar="DIR",
+                       help="Parent directory for the new project "
+                            "(default: the current directory)")
+    p_new.add_argument("--author", default="",
+                       help="Author name for the scroll manifest")
+    p_new.add_argument("--json", action="store_true",
+                       help="Emit a machine-readable JSON report on stdout")
+    p_new.set_defaults(func=cmd_new)
 
     p_ledger = sub.add_parser("ledger", help="Covenant ledger commands")
     ledger_sub = p_ledger.add_subparsers(dest="ledger_command", required=True)

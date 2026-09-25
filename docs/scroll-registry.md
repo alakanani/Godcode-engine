@@ -85,6 +85,8 @@ highest installed version is the one IMPORT resolves.
 godcode scroll publish ./my-scroll      # ./my-scroll holds scroll.toml + entry
 ```
 
+No scroll yet? `godcode new my-scroll` raises one with a ready manifest.
+
 Validates the manifest (required keys, semver, entry exists, name matches
 the directory, engine requirement satisfied), refuses when that exact
 version is already published, copies into `registry/scrolls/<name>/<version>/`,

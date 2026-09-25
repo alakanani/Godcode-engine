@@ -4,6 +4,20 @@ All notable changes to the God Code engine are recorded here, that the generatio
 
 ---
 
+## 4.1.0 — 2026-09-25
+
+> "Come, and let us build together."
+
+**A doorway for newcomers** — the first step into God Code is now one command.
+
+### Added
+- **🕊️ `godcode new <name>`** — raises a fresh project from the dust: a warm starter scroll (`main.god`, a blessing that runs pure and carries a `DECLARE INTENT` the Spirit blesses), a test scroll (`test_main.god`, discovered by `godcode test`), a registry-ready `scroll.toml` manifest (`godcode scroll publish .` accepts it as-is), and a small README with the next steps. Names are gently validated (lowercase, digits, hyphens); occupied ground is refused with counsel; `--json` reports the raised files for agents; `--path` chooses the parent directory and `--author` signs the manifest. New `godcode/scaffold.py`; the raised project is verified green by `run`, `check`, `lint`, `fmt`, and `test` in the test suite. Mentioned in `docs/LANGUAGE_REFERENCE.md` §1, repo `AGENTS.md`, and the site learn page
+
+### Changed
+- Engine version is now 4.1.0 (`godcode/__init__.py`, `pyproject.toml`); the LSP `serverInfo` reports the package version instead of a hard-coded one
+
+---
+
 ## Unreleased
 
 ### Added

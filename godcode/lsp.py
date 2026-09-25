@@ -25,6 +25,8 @@ import json
 import re
 import sys
 
+from godcode import __version__ as ENGINE_VERSION
+
 # ---------------------------------------------------------------------------
 # Divine documentation table (hover + completion)
 # ---------------------------------------------------------------------------
@@ -646,7 +648,7 @@ class LanguageServer:
                 "hoverProvider": True,
                 "completionProvider": {"triggerCharacters": []},
             },
-            "serverInfo": {"name": "godcode-lsp", "version": "4.0.0"},
+            "serverInfo": {"name": "godcode-lsp", "version": ENGINE_VERSION},
         })
 
     def _on_initialized(self, msg_id, params: dict) -> None:  # noqa: ARG002

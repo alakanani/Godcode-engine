@@ -26,6 +26,8 @@ END CREATION
 Statements live one per line (the inline `IF` form is the one exception. See §7).
 `ASCEND` ends the creation early and in peace; reaching `END CREATION` ends it naturally.
 
+To begin a whole project at once, run `godcode new my-scroll`: it raises a directory holding a starter scroll (`main.god`), a test scroll (`test_main.god`), a registry-ready `scroll.toml`, and a README. See the "Your first creation" lesson on the site learn page.
+
 ## 2. Words of the Language
 
 - **Keywords are case-insensitive.** `begin creation`, `Begin Creation`, and `BEGIN CREATION` are all holy. Canonical style is UPPER.
