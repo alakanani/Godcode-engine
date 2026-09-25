@@ -455,13 +455,31 @@ def test_cli_scroll_commands_against_real_registry(tmp_path, monkeypatch,
     out = capsys.readouterr().out
     assert "blessings" in out and "1.0.0" in out
 
+    installed = tmp_path / "home" / ".godcode" / "scrolls" / "json-tools"
+    assert (installed / "1.0.0" / "json-tools.god").is_file()
+
+
+def test_cli_install_unknown_scroll_falls_back_to_remote(tmp_path, monkeypatch,
+                                                         capsys):
+    """A local miss falls back to the remote registry; when the remote has
+    no answer either, the error names the scroll and says so."""
+    from godcode import remote_registry
+    from godcode.cli import main
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.chdir(tmp_path)
+
+    class _DeadRemote(remote_registry.RemoteRegistry):
+        def versions_satisfying(self, name, requirement):
+            raise remote_registry.RegistryClientError("the test net is down")
+
+    monkeypatch.setattr(remote_registry, "RemoteRegistry", _DeadRemote)
     with pytest.raises(SystemExit) as exc:
         main(["scroll", "install", "no-such-scroll"])
     assert exc.value.code == 1
-    assert "not in the registry" in capsys.readouterr().err
-
-    installed = tmp_path / "home" / ".godcode" / "scrolls" / "json-tools"
-    assert (installed / "1.0.0" / "json-tools.god").is_file()
+    err = capsys.readouterr().err
+    assert "no-such-scroll" in err
+    assert "remote registry" in err
 
 
 # ------------------------------------------------- shipped registry sanity --

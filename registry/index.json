@@ -1,5 +1,11 @@
 {
   "blessings": {
+    "checksums": {
+      "1.0.0": {
+        "blessings.god": "0e9efef8246979a85798a2aa22ecfa0e4ff46a468439673fa41e78e47e6ffcfd",
+        "scroll.toml": "5d29a20f1e264fba66505e5baeaca5785908275b100d41e67ff64a4ec0879e18"
+      }
+    },
     "latest": "1.0.0",
     "manifest": {
       "author": "God Code community",
@@ -15,6 +21,12 @@
     ]
   },
   "covenant": {
+    "checksums": {
+      "1.0.0": {
+        "covenant.god": "d65360ecb19323bdd7b8cf5de35adb2f39398d06ecdb585fd36f5528d8e3ee27",
+        "scroll.toml": "49c086615939502dabf94144a15ea283a3aced3aa8541950a74f0d8c8d7d6c7b"
+      }
+    },
     "latest": "1.0.0",
     "manifest": {
       "author": "God Code contributors",
@@ -30,6 +42,12 @@
     ]
   },
   "json-tools": {
+    "checksums": {
+      "1.0.0": {
+        "json-tools.god": "91d98046fcac0944e9003fd4b42df37acf67250d4046286187a54ef0c6ac382a",
+        "scroll.toml": "9c8f8196684a0ed5b2f212c001bdfbd1eb4957f33774f054dd837cf3d876716a"
+      }
+    },
     "latest": "1.0.0",
     "manifest": {
       "author": "God Code community",
@@ -45,6 +63,12 @@
     ]
   },
   "lists": {
+    "checksums": {
+      "1.0.0": {
+        "lists.god": "32b24d6eebffead3e8cc3a83b140949ef48523ee9b8aee23bf76818004ce742a",
+        "scroll.toml": "846b6079169101539ed47732b6f0e0ae540c52cd5b66b97a660f4fde176a213b"
+      }
+    },
     "latest": "1.0.0",
     "manifest": {
       "author": "God Code contributors",
@@ -60,6 +84,12 @@
     ]
   },
   "math": {
+    "checksums": {
+      "1.0.0": {
+        "math.god": "22840909069b36931ddae7b0dc7c1f58ce885ab47bfa54baf3e4fd1dc8852cc2",
+        "scroll.toml": "0e0bd6985f3a276e56edc88b75f4867dc080ae554ebaf5597bde329845d3c14a"
+      }
+    },
     "latest": "1.0.0",
     "manifest": {
       "author": "God Code contributors",
@@ -75,6 +105,12 @@
     ]
   },
   "prophecy": {
+    "checksums": {
+      "1.0.0": {
+        "prophecy.god": "a10fc4e689ddd8b5aa1997a00a28d75f84cb111ef50f6af5a128f404aec74fc3",
+        "scroll.toml": "41858c8523fbe3bfc55c1b2596dec2e0dd73b13f6499dfbfb66f6f9902983fa5"
+      }
+    },
     "latest": "1.0.0",
     "manifest": {
       "author": "God Code contributors",
@@ -90,6 +126,12 @@
     ]
   },
   "strings": {
+    "checksums": {
+      "1.0.0": {
+        "scroll.toml": "c3c61fe21d53f883351599dc252315269465c5587150917aad5b1d64a153e7dd",
+        "strings.god": "75639ab3c94da1ac00eb27f07065cd495cd62272b4a58a97d5054f42e809d964"
+      }
+    },
     "latest": "1.0.0",
     "manifest": {
       "author": "God Code contributors",
@@ -105,6 +147,12 @@
     ]
   },
   "time": {
+    "checksums": {
+      "1.0.0": {
+        "scroll.toml": "216f77d6e006b88daeda8ab244aaee41b228af97ff1850ea4f9328816f422e7e",
+        "time.god": "c7762434d3238df8afe8051bc8bcd6386db92cf88e7c180260d31dc878093f82"
+      }
+    },
     "latest": "1.0.0",
     "manifest": {
       "author": "God Code contributors",
