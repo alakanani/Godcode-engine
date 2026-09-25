@@ -171,7 +171,7 @@ ENDIF
 IF c == "[" THEN
 RETURN JSON_PARSE_ARRAY(text, i)
 ENDIF
-IF c == "{" THEN
+IF c == "{{" THEN
 RETURN JSON_PARSE_OBJECT(text, i)
 ENDIF
 IF c == "t" THEN
