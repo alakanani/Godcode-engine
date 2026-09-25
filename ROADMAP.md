@@ -10,10 +10,18 @@ Where the language is headed, in plain words. This is a living document: it chan
 - `BREAK` and `CONTINUE` for loops.
 - `TRY` / `CATCH` error handling, plus stack traces that show the path through your rites when something fails.
 - The formal language specification (`docs/LANGUAGE_SPEC.md`) and the EBNF grammar (`docs/GRAMMAR.ebnf`).
+- The remote scroll registry: `godcode scroll search` queries the public
+  catalog over HTTPS, `install` falls back to the remote registry when the
+  local index has no answer (`--remote` prefers it), `publish --remote`
+  pushes with a publish token (`GODCODE_PUBLISH_TOKEN`), `update` moves
+  installed scrolls to the newest known version, `uninstall` removes them,
+  manifests declare `dependencies` resolved recursively with cycle
+  detection, and sha256 checksums are recorded on publish and verified on
+  install. The versioning scheme, compatibility promise, and deprecation
+  process are written down in `docs/VERSIONING.md`.
 
 ## What is next
 
-- A public package registry: publish scrolls, install them with dependencies, update and uninstall cleanly.
 - Performance benchmarks: reproducible numbers, published with the method, so improvements can be measured honestly.
 - More of the standard library: cryptography, concurrency, and the everyday builtins a working language needs.
 - Editor tooling polish: the VS Code extension, the language server, and the playground keeping pace with the language.

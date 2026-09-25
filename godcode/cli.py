@@ -7,6 +7,7 @@ lazily inside each command so `--help` works even before they land.
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from pathlib import Path
 
@@ -580,30 +581,133 @@ def cmd_scroll_list(args: argparse.Namespace) -> int:  # noqa: ARG001
 
 
 def cmd_scroll_install(args: argparse.Namespace) -> int:
-    from godcode.registry import ScrollError
+    from godcode.registry import ScrollError, ScrollNotFoundError
 
     try:
-        receipt = _scroll_registry().install(
-            args.name, version=args.version, project=args.project)
+        try:
+            receipt = _scroll_registry().install(
+                args.name, version=args.version, project=args.project,
+                remote=args.remote)
+        except ScrollNotFoundError:
+            if args.remote:
+                raise
+            # not in the local index: fall back to the remote registry
+            receipt = _scroll_registry().install(
+                args.name, version=args.version, project=args.project,
+                remote=True)
     except ScrollError as exc:
         print(f"godcode: {exc}", file=sys.stderr)
         return 1
     where = "project-local" if args.project else "user-global"
-    print(f"Installed {receipt['name']} {receipt['version']} "
-          f"({where}: {receipt['manifest']['description'][:60]}...)")
+    desc = receipt["manifest"]["description"][:60]
+    deps = receipt.get("dependencies") or {}
+    dep_note = f" (+{len(deps)} dependencies)" if deps else ""
+    print(f"Installed {receipt['name']} {receipt['version']}{dep_note} "
+          f"({where}, from {receipt.get('source', 'local')}: {desc}...)")
     return 0
 
 
 def cmd_scroll_publish(args: argparse.Namespace) -> int:
-    from godcode.registry import ScrollError
+    from godcode.registry import ScrollError, read_manifest
 
+    if not args.remote:
+        try:
+            manifest = _scroll_registry().publish(args.dir)
+        except ScrollError as exc:
+            print(f"godcode: {exc}", file=sys.stderr)
+            return 1
+        print(f"Published {manifest['name']} {manifest['version']} "
+              f"to the local registry.")
+        return 0
+
+    # --remote: push to the registry over HTTPS; needs a publish token.
+    token = os.environ.get("GODCODE_PUBLISH_TOKEN")
+    if not token:
+        print("godcode: publishing to the remote registry needs a publish "
+              "token.", file=sys.stderr)
+        print("godcode: set the GODCODE_PUBLISH_TOKEN environment variable "
+              "to your registry token and try again.", file=sys.stderr)
+        return 1
+    from godcode.remote_registry import RegistryClientError, RemoteRegistry
+
+    src = Path(args.dir)
+    manifest_path = src / "scroll.toml"
     try:
-        manifest = _scroll_registry().publish(args.dir)
-    except ScrollError as exc:
+        manifest = read_manifest(manifest_path)
+        entry = src / manifest["entry"]
+        if not entry.is_file():
+            raise ScrollError(
+                f"publish: entry file {manifest['entry']!r} not found in {src}"
+            )
+        code = entry.read_text(encoding="utf-8")
+    except (ScrollError, OSError) as exc:
+        print(f"godcode: {exc}", file=sys.stderr)
+        return 1
+    try:
+        RemoteRegistry().publish_scroll(
+            name=manifest["name"],
+            version=manifest["version"],
+            code=code,
+            description=manifest["description"],
+            author=manifest["author"],
+            token=token,
+        )
+    except RegistryClientError as exc:
         print(f"godcode: {exc}", file=sys.stderr)
         return 1
     print(f"Published {manifest['name']} {manifest['version']} "
-          f"to the local registry.")
+          f"to the remote registry.")
+    return 0
+
+
+def cmd_scroll_search(args: argparse.Namespace) -> int:
+    from godcode.remote_registry import RegistryClientError, RemoteRegistry
+
+    try:
+        rows = RemoteRegistry().search(args.query)
+    except RegistryClientError as exc:
+        print(f"godcode: {exc}", file=sys.stderr)
+        return 1
+    if not rows:
+        print(f"No scrolls found for {args.query!r} in the remote registry.")
+        return 0
+    for row in rows:
+        desc = (row.get("description") or "")[:70]
+        print(f"{row.get('name')} {row.get('latest', '?')} - {desc}")
+    return 0
+
+
+def cmd_scroll_uninstall(args: argparse.Namespace) -> int:
+    from godcode.registry import ScrollError
+
+    try:
+        removed = _scroll_registry().uninstall(args.name,
+                                               version=args.version)
+    except ScrollError as exc:
+        print(f"godcode: {exc}", file=sys.stderr)
+        return 1
+    for entry in removed:
+        print(f"Uninstalled {entry['name']} {entry['version']} "
+              f"({entry['location']})")
+    return 0
+
+
+def cmd_scroll_update(args: argparse.Namespace) -> int:
+    from godcode.registry import ScrollError
+
+    try:
+        results = _scroll_registry().update(name=args.name,
+                                            remote=args.remote)
+    except ScrollError as exc:
+        print(f"godcode: {exc}", file=sys.stderr)
+        return 1
+    for result in results:
+        if result.get("up_to_date"):
+            print(f"{result['name']} is already at the newest version "
+                  f"({result['from']})")
+        else:
+            print(f"Updated {result['name']} {result['from']} -> "
+                  f"{result['to']} (from {result['source']})")
     return 0
 
 
@@ -652,17 +756,47 @@ def _add_scroll_commands(sub) -> None:
     p_install.add_argument("--project", action="store_true",
                            help="Install project-local (.godcode/scrolls/) "
                                 "instead of user-global (~/.godcode/scrolls/)")
+    p_install.add_argument("--remote", action="store_true",
+                           help="Prefer the remote registry (default: local "
+                                "index first, remote as fallback)")
     p_install.set_defaults(func=cmd_scroll_install)
 
     p_publish = scroll_sub.add_parser("publish",
                                       help="Publish a scroll dir to the registry")
     p_publish.add_argument("dir", help="Directory holding scroll.toml")
+    p_publish.add_argument("--remote", action="store_true",
+                           help="Publish to the remote registry over HTTPS "
+                                "(needs the GODCODE_PUBLISH_TOKEN "
+                                "environment variable)")
     p_publish.set_defaults(func=cmd_scroll_publish)
 
     p_info = scroll_sub.add_parser("info",
                                    help="Show a scroll's manifest and state")
     p_info.add_argument("name", help="Scroll name")
     p_info.set_defaults(func=cmd_scroll_info)
+
+    p_search = scroll_sub.add_parser("search",
+                                     help="Search the remote registry")
+    p_search.add_argument("query", help="Words to search for")
+    p_search.set_defaults(func=cmd_scroll_search)
+
+    p_uninstall = scroll_sub.add_parser("uninstall",
+                                        help="Remove an installed scroll")
+    p_uninstall.add_argument("name", help="Scroll name")
+    p_uninstall.add_argument("--version", default=None, metavar="X.Y.Z",
+                             help="Only remove this version "
+                                  "(default: every installed version)")
+    p_uninstall.set_defaults(func=cmd_scroll_uninstall)
+
+    p_update = scroll_sub.add_parser("update",
+                                     help="Update installed scrolls to the "
+                                          "newest version")
+    p_update.add_argument("name", nargs="?", default=None,
+                          help="Scroll name (default: every installed scroll)")
+    p_update.add_argument("--remote", action="store_true",
+                          help="Prefer the remote registry when looking for "
+                               "newer versions")
+    p_update.set_defaults(func=cmd_scroll_update)
 
 
 # --- end v3: scroll commands ---

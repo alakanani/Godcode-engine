@@ -15,6 +15,7 @@ keys this registry defines.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -36,14 +37,25 @@ class ScrollError(Exception):
     """Raised when a manifest, publish, install, or lookup fails."""
 
 
+class ScrollNotFoundError(ScrollError):
+    """Raised when a scroll cannot be found in a registry.
+
+    Kept distinct from ScrollError so the CLI can fall back from the local
+    registry to the remote one on exactly this failure.
+    """
+
+
 # ---------------------------------------------------------------------------
 # manifest parsing (TOML subset: key = "value" pairs, # comments)
 
 
 MANIFEST_KEYS = frozenset(
-    {"name", "version", "author", "description", "entry", "godcode"}
+    {"name", "version", "author", "description", "entry", "godcode",
+     "dependencies"}
 )
-REQUIRED_KEYS = MANIFEST_KEYS  # every key is required for now
+REQUIRED_KEYS = frozenset(
+    {"name", "version", "author", "description", "entry", "godcode"}
+)  # dependencies is optional
 _NAME_RE = re.compile(r"^[a-z][a-z0-9-]*[a-z0-9]$|^[a-z]$")
 _SEMVER_RE = re.compile(r"^(\d+)\.(\d+)\.(\d+)$")
 _REQ_CLAUSE_RE = re.compile(r"^(>=|<=|==|!=|>|<)\s*(\d+(?:\.\d+){0,2})$")
@@ -56,6 +68,7 @@ _KEY_HINTS = {
     "description": 'e.g. description = "JSON helpers written in God Code"',
     "entry": 'e.g. entry = "json-tools.god"',
     "godcode": 'e.g. godcode = ">=2.0"',
+    "dependencies": 'e.g. dependencies = "json-tools >= 1.0.0, dates"',
 }
 
 
@@ -159,6 +172,8 @@ def parse_manifest(text: str, source: str = "<scroll.toml>") -> dict[str, str]:
             f"{source}: this scroll needs God Code {req}, "
             f"but the engine is {ENGINE_VERSION}"
         )
+    if "dependencies" in data:
+        parse_dependencies(data["dependencies"], source=source)
     return data
 
 
@@ -255,11 +270,81 @@ def requirement_satisfied(req: str, engine: str = ENGINE_VERSION) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# scroll dependencies, e.g. dependencies = "json-tools >= 1.0.0, dates"
+
+
+def parse_dependencies(
+    spec: str, source: str = "<scroll.toml>"
+) -> list[tuple[str, str | None]]:
+    """Parse a manifest ``dependencies`` value.
+
+    Returns ``[(name, requirement)]``; requirement is None when the clause
+    names the scroll with no version constraint.  A clause carries at most
+    one requirement clause (``>= 1.0.0``); commas separate dependencies.
+    """
+    if not spec.strip():
+        return []
+    deps: list[tuple[str, str | None]] = []
+    for part in spec.split(","):
+        part = part.strip()
+        if not part:
+            raise ScrollError(
+                f"{source}: bad dependencies {spec!r}: empty clause"
+            )
+        tokens = part.split()
+        name = tokens[0]
+        if not _NAME_RE.match(name):
+            raise ScrollError(
+                f"{source}: bad dependency name {name!r} in "
+                f"dependencies {spec!r}"
+            )
+        requirement = " ".join(tokens[1:]) or None
+        if requirement is not None:
+            _parse_requirement(requirement)  # validates the clause shape
+        if name in {n for n, _ in deps}:
+            raise ScrollError(
+                f"{source}: duplicate dependency {name!r} in "
+                f"dependencies {spec!r}"
+            )
+        deps.append((name, requirement))
+    return deps
+
+
+def render_manifest(manifest: dict[str, str]) -> str:
+    """Render a manifest dict as ``scroll.toml`` text."""
+    lines: list[str] = []
+    for key in ("name", "version", "author", "description", "entry",
+                "godcode", "dependencies"):
+        if key in manifest:
+            value = manifest[key].replace("\\", "\\\\").replace('"', '\\"')
+            lines.append(f'{key} = "{value}"')
+    return "\n".join(lines) + "\n"
+
+
+# ---------------------------------------------------------------------------
 # the registry
 
 
 def _default_registry_root() -> Path:
     return Path(__file__).resolve().parent.parent / "registry"
+
+
+def _sha256_file(path: Path) -> str:
+    """Hex sha256 of a file's bytes."""
+    digest = hashlib.sha256()
+    with open(path, "rb") as handle:
+        for chunk in iter(lambda: handle.read(65536), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _checksum_tree(root: Path) -> dict[str, str]:
+    """sha256 for every file under ``root``, keyed by relative path."""
+    checksums: dict[str, str] = {}
+    for path in sorted(root.rglob("*")):
+        if path.is_file():
+            checksums[path.relative_to(root).as_posix()] = _sha256_file(path)
+    return checksums
 
 
 class ScrollRegistry:
@@ -350,18 +435,34 @@ class ScrollRegistry:
             "versions": versions,
             "latest": latest_version(versions),
             "manifest": manifest,
+            "checksums": {
+                **index.get(name, {}).get("checksums", {}),
+                version: _checksum_tree(dest),
+            },
         }
         self._save_index(index)
         return manifest
 
     # ----------------------------------------------------------- install ---
 
+    def _remote_client(self, remote: bool | Any) -> Any | None:
+        """A RemoteRegistry when ``remote`` asks for one, else None.
+
+        ``remote`` may be True (build a default client), a RemoteRegistry
+        instance (use it), or False/None (local only).
+        """
+        if remote is True:
+            from godcode.remote_registry import RemoteRegistry
+
+            return RemoteRegistry()
+        return remote or None
+
     def resolve_version(self, name: str, version: str | None = None) -> str:
         """The version to install: ``version`` if given, else the latest."""
         index = self.load_index()
         entry = index.get(name)
         if entry is None:
-            raise ScrollError(
+            raise ScrollNotFoundError(
                 f"install: {name!r} is not in the registry "
                 f"({self.registry_root})"
             )
@@ -375,38 +476,204 @@ class ScrollRegistry:
             )
         return version
 
-    def install(
+    def _choose_source(
         self,
         name: str,
-        version: str | None = None,
-        project: bool = False,
-    ) -> dict[str, Any]:
-        """Install a scroll from the registry into an install directory.
+        requirement: str | None,
+        remote_client: Any | None,
+        stack: tuple[str, ...],
+    ) -> tuple[str, str, dict[str, Any] | None]:
+        """Pick (version, source, info) for ``name`` under ``requirement``.
 
-        ``project=True`` installs under ``.godcode/scrolls/`` in the current
-        (or given) project directory; otherwise under ``~/.godcode/scrolls/``.
-        Returns the install receipt.
+        ``requirement`` is None (any version), ``==X.Y.Z`` (exact, from
+        ``--version`` or a pinned dependency), or a dep clause like
+        ``>= 1.0.0``.  The local index always wins; the remote registry is
+        consulted only when a client was passed and the local index cannot
+        serve the requirement.
         """
-        resolved = self.resolve_version(name, version)
-        src = self.scrolls_root / name / resolved
-        if not src.is_dir():
-            raise ScrollError(
-                f"install: registry is missing files for {name} {resolved} "
-                f"(expected {src})"
-            )
-        manifest = read_manifest(src / "scroll.toml")
+        context = f" (needed by {' -> '.join(stack)})" if stack else ""
+        index = self.load_index()
+        entry = index.get(name)
 
+        if requirement is not None and requirement.startswith("=="):
+            exact = requirement[2:].strip()
+            if entry is not None:
+                if exact in entry["versions"]:
+                    return exact, "local", None
+                if remote_client is None:
+                    raise ScrollError(
+                        f"install: {name} has no version {exact!r}; "
+                        f"published: {', '.join(entry['versions'])}"
+                    )
+                # else: fall through to the remote lookup below
+        elif entry is not None:
+            matching = [
+                v
+                for v in entry["versions"]
+                if requirement is None
+                or requirement_satisfied(requirement, v)
+            ]
+            if matching:
+                return latest_version(matching), "local", None
+
+        if remote_client is not None:
+            try:
+                info, matching = remote_client.versions_satisfying(
+                    name, requirement
+                )
+            except ScrollError as exc:
+                raise ScrollNotFoundError(
+                    f"install: {name!r} is not in the local registry and the "
+                    f"remote registry cannot serve it: {exc}{context}"
+                ) from exc
+            if matching:
+                return matching[0], "remote", info
+            raise ScrollNotFoundError(
+                f"install: {name!r} is not in the local registry and the "
+                f"remote registry has no version matching "
+                f"{requirement or 'any'!r}{context}"
+            )
+        if entry is None:
+            raise ScrollNotFoundError(
+                f"install: {name!r} is not in the registry "
+                f"({self.registry_root}){context}"
+            )
+        raise ScrollNotFoundError(
+            f"install: {name!r} has no published version matching "
+            f"{requirement!r}{context}"
+        )
+
+    def _manifest_for(
+        self,
+        name: str,
+        version: str,
+        source: str,
+        info: dict[str, Any] | None,
+    ) -> dict[str, str]:
+        """The validated manifest for a chosen (name, version)."""
+        if source == "local":
+            return read_manifest(self.scrolls_root / name / version / "scroll.toml")
+        from godcode.remote_registry import synthesized_manifest
+
+        manifest = synthesized_manifest(name, info or {}, version)
+        return parse_manifest(
+            render_manifest(manifest), source=f"<remote {name} {version}>"
+        )
+
+    def _plan_install(
+        self,
+        name: str,
+        requirement: str | None,
+        stack: tuple[str, ...],
+        remote_client: Any | None,
+        plan: dict[str, dict[str, Any]],
+    ) -> None:
+        """Fill ``plan`` (insertion-ordered, dependencies first) with the
+        scrolls this install needs, resolving versions and detecting cycles.
+        """
+        if name in stack:
+            cycle = " -> ".join([*stack, name])
+            raise ScrollError(
+                f"dependency cycle detected: {cycle}. A scroll cannot depend "
+                "on itself through a circle of dependencies; break the "
+                "circle and publish again."
+            )
+        if name in plan:
+            chosen = plan[name]["version"]
+            if requirement is None or requirement_satisfied(requirement, chosen):
+                return
+            raise ScrollError(
+                f"install: version conflict for {name!r}: this install "
+                f"already resolved {chosen}, which does not satisfy "
+                f"{requirement!r}"
+            )
+        version, source, info = self._choose_source(
+            name, requirement, remote_client, stack
+        )
+        manifest = self._manifest_for(name, version, source, info)
+        for dep_name, dep_req in parse_dependencies(
+            manifest.get("dependencies", ""), source=f"<{name} {version}>"
+        ):
+            self._plan_install(dep_name, dep_req, stack + (name,),
+                               remote_client, plan)
+        plan[name] = {
+            "name": name,
+            "version": version,
+            "source": source,
+            "info": info,
+            "manifest": manifest,
+        }
+
+    def _dependency_tree(
+        self, manifest: dict[str, str], plan: dict[str, dict[str, Any]]
+    ) -> dict[str, str]:
+        """Resolved {dependency name: version} for a receipt."""
+        tree: dict[str, str] = {}
+        for dep_name, _ in parse_dependencies(manifest.get("dependencies", "")):
+            if dep_name in plan:
+                tree[dep_name] = plan[dep_name]["version"]
+        return tree
+
+    def _verify_checksums(self, name: str, version: str, src: Path) -> dict[str, str]:
+        """Check published files against the checksums recorded on publish.
+
+        Returns the recorded checksums (for the receipt).  Index entries
+        written before checksums existed carry none and are trusted as-is.
+        """
+        index = self.load_index()
+        recorded: dict[str, str] = (
+            index.get(name, {}).get("checksums", {}) or {}
+        ).get(version, {})
+        for rel, expected in recorded.items():
+            path = src / rel
+            if not path.is_file():
+                raise ScrollError(
+                    f"install: {name} {version} is missing published file "
+                    f"{rel!r} in the registry; republish the scroll"
+                )
+            actual = _sha256_file(path)
+            if actual != expected:
+                raise ScrollError(
+                    f"install: checksum mismatch for {name} {version} file "
+                    f"{rel!r}: the registry copy changed after publish "
+                    f"(expected {expected[:12]}..., got {actual[:12]}...). "
+                    "Republish the scroll to heal the registry."
+                )
+        return recorded
+
+    def _write_install(
+        self,
+        name: str,
+        version: str,
+        project: bool,
+        manifest: dict[str, str],
+        *,
+        source: str,
+        checksums: dict[str, str],
+        dependencies: dict[str, str],
+        copy_from: Path | None = None,
+        files: dict[str, str] | None = None,
+    ) -> dict[str, Any]:
+        """Materialize one installed scroll directory and its receipt."""
         base = self.project_scrolls_dir if project else self.user_dir
-        dest = base / name / resolved
+        dest = base / name / version
         if dest.exists():
             shutil.rmtree(dest)
-        shutil.copytree(src, dest)
+        if copy_from is not None:
+            shutil.copytree(copy_from, dest)
+        else:
+            dest.mkdir(parents=True)
+            for rel, content in (files or {}).items():
+                (dest / rel).write_text(content, encoding="utf-8")
 
         receipt = {
             "name": name,
-            "version": resolved,
+            "version": version,
+            "source": source,
             "location": "project" if project else "user",
             "installed_at": datetime.now(timezone.utc).isoformat(),
+            "checksums": checksums,
+            "dependencies": dependencies,
             "manifest": manifest,
         }
         (dest / "install.json").write_text(
@@ -414,6 +681,194 @@ class ScrollRegistry:
             encoding="utf-8",
         )
         return receipt
+
+    def _install_local(
+        self,
+        name: str,
+        version: str,
+        manifest: dict[str, str],
+        project: bool,
+        dependency_tree: dict[str, str],
+    ) -> dict[str, Any]:
+        """Install one planned scroll from the local registry directory."""
+        src = self.scrolls_root / name / version
+        if not src.is_dir():
+            raise ScrollError(
+                f"install: registry is missing files for {name} {version} "
+                f"(expected {src})"
+            )
+        checksums = self._verify_checksums(name, version, src)
+        return self._write_install(
+            name, version, project, manifest,
+            source="local", checksums=checksums,
+            dependencies=dependency_tree, copy_from=src,
+        )
+
+    def _install_remote(
+        self,
+        name: str,
+        version: str,
+        manifest: dict[str, str],
+        project: bool,
+        remote_client: Any,
+        dependency_tree: dict[str, str],
+    ) -> dict[str, Any]:
+        """Install one planned scroll by downloading it from the remote."""
+        code, resolved = remote_client.fetch_code(name, version)
+        entry_name = manifest["entry"]
+        manifest_text = render_manifest({**manifest, "version": resolved})
+        checksums = {
+            entry_name: hashlib.sha256(code.encode("utf-8")).hexdigest(),
+            "scroll.toml": hashlib.sha256(
+                manifest_text.encode("utf-8")).hexdigest(),
+        }
+        return self._write_install(
+            name, resolved, project, {**manifest, "version": resolved},
+            source="remote", checksums=checksums,
+            dependencies=dependency_tree,
+            files={entry_name: code, "scroll.toml": manifest_text},
+        )
+
+    def install(
+        self,
+        name: str,
+        version: str | None = None,
+        project: bool = False,
+        remote: bool | Any = False,
+    ) -> dict[str, Any]:
+        """Install a scroll and its dependencies into an install directory.
+
+        ``project=True`` installs under ``.godcode/scrolls/`` in the current
+        (or given) project directory; otherwise under ``~/.godcode/scrolls/``.
+        Dependencies declared in the manifest are resolved recursively, the
+        local index first and then the remote registry when ``remote`` is a
+        client (or True for a default client); cycles are refused with a
+        clear error.  Returns the top-level install receipt.
+        """
+        remote_client = self._remote_client(remote)
+        plan: dict[str, dict[str, Any]] = {}
+        self._plan_install(
+            name,
+            f"=={version}" if version is not None else None,
+            (),
+            remote_client,
+            plan,
+        )
+        receipts: list[dict[str, Any]] = []
+        for item in plan.values():
+            tree = self._dependency_tree(item["manifest"], plan)
+            if item["source"] == "local":
+                receipts.append(
+                    self._install_local(
+                        item["name"], item["version"], item["manifest"],
+                        project, tree,
+                    )
+                )
+            else:
+                assert remote_client is not None  # chosen by _choose_source
+                receipts.append(
+                    self._install_remote(
+                        item["name"], item["version"], item["manifest"],
+                        project, remote_client, tree,
+                    )
+                )
+        return receipts[-1]
+
+    # --------------------------------------------------------- uninstall ---
+
+    def uninstall(
+        self, name: str, version: str | None = None
+    ) -> list[dict[str, str]]:
+        """Remove an installed scroll (one version, or every installed
+        version when ``version`` is None) from both install scopes."""
+        removed: list[dict[str, str]] = []
+        for base, location in (
+            (self.project_scrolls_dir, "project"),
+            (self.user_dir, "user"),
+        ):
+            name_dir = base / name
+            if not name_dir.is_dir():
+                continue
+            if version is None:
+                targets = sorted(d for d in name_dir.iterdir() if d.is_dir())
+            else:
+                single = name_dir / version
+                targets = [single] if single.is_dir() else []
+            for target in targets:
+                shutil.rmtree(target)
+                removed.append(
+                    {"name": name, "version": target.name,
+                     "location": location}
+                )
+            if version is None and name_dir.is_dir() and not any(
+                name_dir.iterdir()
+            ):
+                name_dir.rmdir()
+        if not removed:
+            raise ScrollError(
+                f"uninstall: {name!r}"
+                + (f" {version}" if version else "")
+                + " is not installed"
+            )
+        return removed
+
+    # ------------------------------------------------------------ update ---
+
+    def _newest_available(
+        self, name: str, remote_client: Any | None
+    ) -> tuple[str | None, str]:
+        """(newest version known anywhere, source) for ``name``."""
+        best: str | None = None
+        source = "local"
+        entry = self.load_index().get(name)
+        if entry:
+            best = entry["latest"]
+        if remote_client is not None:
+            try:
+                info, matching = remote_client.versions_satisfying(name, None)
+            except ScrollError:
+                matching = []
+                info = {}
+            if matching and (
+                best is None or compare_versions(matching[0], best) > 0
+            ):
+                best, source = matching[0], "remote"
+        return best, source
+
+    def update(
+        self,
+        name: str | None = None,
+        project: bool = False,
+        remote: bool | Any = False,
+    ) -> list[dict[str, Any]]:
+        """Update one installed scroll (or all, when ``name`` is None) to the
+        newest version known to the local index or the remote registry."""
+        remote_client = self._remote_client(remote)
+        rows = {r["name"]: r for r in self.list_installed()}
+        names = [name] if name is not None else sorted(rows)
+        if name is not None and name not in rows:
+            raise ScrollError(f"update: {name!r} is not installed")
+        results: list[dict[str, Any]] = []
+        for scroll_name in names:
+            installed = rows[scroll_name]["latest"]
+            available, _source = self._newest_available(scroll_name,
+                                                       remote_client)
+            if available is not None and compare_versions(available,
+                                                          installed) > 0:
+                receipt = self.install(
+                    scroll_name, version=available, project=project,
+                    remote=remote,
+                )
+                results.append(
+                    {"name": scroll_name, "from": installed,
+                     "to": available, "source": receipt["source"]}
+                )
+            else:
+                results.append(
+                    {"name": scroll_name, "from": installed,
+                     "to": installed, "up_to_date": True}
+                )
+        return results
 
     # -------------------------------------------------------------- read ---
 
