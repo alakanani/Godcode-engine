@@ -1,8 +1,8 @@
-"""Entry point for the God Code engine (v2).
+"""Entry point for the God Code engine.
 
 With CLI args: delegate to the `godcode` command-line interface.
 With no args: run the sample scroll through the new interpreter (legacy
-behavior from the v1 prototype).
+behavior from the original prototype).
 """
 import sys
 from pathlib import Path

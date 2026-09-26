@@ -82,7 +82,7 @@ generate → `check --json` → fix from diagnostics → `run --sandbox --json`
 real credentials, Bank of Botswana sandbox submission) out of the way —
 demo in sandbox mode.
 
-## Agent tool bridge (v4.0)
+## Agent tool bridge
 
 Six MCP-compatible tool schemas for agent frameworks, plus a JSON-RPC
 bridge over stdio:
@@ -98,3 +98,17 @@ godcode ledger verify    # attest the covenant chain AND the anchor chain
 rite carrying a `DECLARE INTENT`, with `declared`, `discerned`,
 `confidence`, and `aligned`. Declare the intent of generated rites and
 check `intents` for drift after each run.
+
+## House rules for agents working on God Code
+
+- **No version numbers in anything a human reads.** God Code releases by date now, not by numbers. Never write a version label in a commit
+  message, a doc, a site page, a README, a changelog header, or a Discord
+  announcement. Changelog entries are headed by date. The future is commits,
+  not versions.
+- Structural versions stay but stay invisible: `pyproject.toml`,
+  `godcode/__init__.py` `__version__`, scroll manifest `version` fields,
+  registry dependency versions, `/v1/` API paths, and the VS Code
+  `package.json` version are machine-readable packaging facts. Never mention
+  them in prose, headings, or announcements.
+- Never use em dashes (—) or spaced en dashes between sentences in
+  user-facing text. Use a full stop instead.

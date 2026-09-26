@@ -1,13 +1,13 @@
-# Agentics — machine-readable God Code (v3.0, Mini-Pillar 5)
+# Agentics — machine-readable God Code (Mini-Pillar 5)
 
-God Code v3.0 speaks JSON as fluently as it speaks in tongues. The `--json`
+God Code speaks JSON as fluently as it speaks in tongues. The `--json`
 flag on `run` and `check` emits a single machine-readable document on
 stdout — no prose to scrape, no emoji to parse. It is the contract between
 the engine and AI agents that generate, validate, and execute scrolls.
 
 Implementation: `godcode/agentics.py` (payload builders, error-code
 mapping, `--json` command bodies). The `run`/`check` wiring in
-`godcode/cli.py` is marked `# --- v3: agentics --json ---`.
+`godcode/cli.py` is marked `# --- agentics --json ---`.
 
 ## `godcode check --json FILE`
 
@@ -30,7 +30,7 @@ Lexes and parses without executing.
 | `diagnostics[].line` | int \| null | 1-based line of the fault, `null` if unknown |
 | `diagnostics[].col` | int \| null | 1-based column, `null` when not tracked |
 | `diagnostics[].code` | string | Stable machine code (see below) |
-| `diagnostics[].severity` | string | `"error"` (v3.0 reports errors only) |
+| `diagnostics[].severity` | string | `"error"` (errors only) |
 | `diagnostics[].message` | string | Human-readable message, no location suffix |
 | `diagnostics[].hint` | string \| null | One-line actionable suggestion, `null` if none |
 
@@ -60,7 +60,7 @@ hooks from other pillars).
 | `ok` | boolean | `true` when the run completed without a God Code error |
 | `output` | string[] | Every line printed during the run, in order — REVEAL lines plus engine notices such as `[SEAL]` and the ascension message |
 | `seals` | array | Covenant blocks sealed during this run: `{"block": <index>, "hash": <sha256 hex>}` |
-| `intents` | array | *(v4.0)* Intent checks recorded during this run: `{"rite", "declared", "discerned", "confidence", "aligned"}` — one entry per invocation of a rite carrying a `DECLARE INTENT` |
+| `intents` | array | Intent checks recorded during this run: `{"rite", "declared", "discerned", "confidence", "aligned"}` — one entry per invocation of a rite carrying a `DECLARE INTENT` |
 | `error` | object \| null | On runtime failure: `{line, col, code, severity, message, hint}` (same shape as a diagnostic, minus `hint` when none); `null` on success |
 | `stats.ms` | int | Wall-clock milliseconds for lex + parse + run |
 
@@ -79,7 +79,7 @@ other flags (e.g. the sandbox flag from the sibling pillar).
 ## Error codes
 
 Chosen as a small, stable, language-agnostic vocabulary derived from the
-v2.0 hierarchy in `godcode/errors.py` (which has no `GodCodeSyntaxError`
+error hierarchy in `godcode/errors.py` (which has no `GodCodeSyntaxError`
 class, so the mapping is explicit rather than mechanical):
 
 | Code | Source | Meaning |
@@ -101,7 +101,7 @@ generate → check --json → fix from diagnostics → run --sandbox --json
 
 1. **Generate** a scroll.
 2. **Declare the intent** of each rite with `DECLARE INTENT "words..." ON rite_name`
-   (v4.0): say what the work is for, in plain words.
+   (intent): say what the work is for, in plain words.
 3. **Validate** with `godcode check --json`; repair every diagnostic
    (the `hint` field suggests the fix).
 4. **Execute** with `godcode run --sandbox --json`; never run untrusted
@@ -109,9 +109,9 @@ generate → check --json → fix from diagnostics → run --sandbox --json
 5. **Inspect** `output`, `error`, `seals`, and `intents`; iterate until `ok`
    is true and every intent is aligned.
 
-## v4.0 — Intent & Chain: the language agents speak (shipped)
+## Intent & Chain: the language agents speak (shipped)
 
-Mini-Pillar 5 made God Code legible to agents; v4.0 makes agents legible
+Mini-Pillar 5 made God Code legible to agents; declared intent makes agents legible
 to God Code. The `run --json` report now carries an **`intents` array** —
 every rite's declared intent, the intent the Spirit discerned, the
 confidence, and whether they aligned — so an agent's *intent* is auditable

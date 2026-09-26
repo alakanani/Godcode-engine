@@ -1,9 +1,9 @@
-# 🕊️ What Is New in God Code v4.0 — Intent & Chain
+# 🕊️ Intent & Chain
 
 > "The language is spoken. The engine is built. Now the Spirit is awake."
 > — Alakanani Itireleng (BitcoinLady), founder of God Code
 
-v3.0 gave God Code strong foundations: the sandbox, the scroll registry, plugins, the language server, and the agentics mini-pillar that made the language legible to AI agents. **v4.0 — Intent & Chain** makes agents legible to God Code.
+Strong foundations came first: the sandbox, the scroll registry, plugins, the language server, and the agentics mini-pillar that made the language legible to AI agents. **Intent & Chain** makes agents legible to God Code.
 
 This is the release where the language learns to ask *why*.
 
@@ -54,14 +54,14 @@ See `examples/consult_demo.god` and §27 of the [Language Reference](LANGUAGE_RE
 
 ## 🤖 The agent tool bridge
 
-v4.0 is the release where agents stop being *users* of God Code and start being *citizens* of it:
+This is where agents stop being *users* of God Code and start being *citizens* of it:
 
 - **`godcode tools [--json]`** — six MCP-compatible tool schemas: `check`, `run`, `consult`, `intent`, `anchor_verify`, `ledger_verify`. Paste them into any agent framework that speaks the Model Context Protocol.
 - **`godcode bridge`** — a JSON-RPC 2.0 server over stdio exposing those tools, so an agent host can call God Code the way it calls any other tool.
 - **`godcode intent "words..."`** — resolve the intent behind any words, with or without `--json`.
 - **`godcode run --json`** — run reports now carry an `intents` array recording every rite's declared intent, the discerned intent, the confidence, and whether they aligned.
 
-The agent workflow from v3.0 stands: generate → `check --json` → fix → `run --sandbox --json`. It now gains a new first question: *declare the intent, and let the Spirit watch over it.*
+The agent workflow stands: generate → `check --json` → fix → `run --sandbox --json`. It now gains a new first question: *declare the intent, and let the Spirit watch over it.*
 
 See §28 of the [Language Reference](LANGUAGE_REFERENCE.md) and the rewritten `docs/agentics.md`.
 
@@ -73,7 +73,7 @@ See §28 of the [Language Reference](LANGUAGE_REFERENCE.md) and the rewritten `d
 
 ## ⬆️ Upgrading
 
-v4.0 is fully backward compatible. Every v1, v2, and v3 creation still runs; nothing was removed. Update with `pip install -e .` (or `pip install godcode --upgrade` once published) and try:
+Everything stays compatible. Every creation still runs; nothing was removed. Update with `pip install -e .` and try:
 
 ```bash
 godcode run --sandbox examples/intent_demo.god

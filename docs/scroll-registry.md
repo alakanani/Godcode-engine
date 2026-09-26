@@ -1,6 +1,6 @@
-# The Scroll Registry — installable God Code scrolls (Pillar 2, v3.0)
+# The Scroll Registry — installable God Code scrolls (Pillar 2)
 
-God Code v2.0 shipped six stdlib scrolls as loose `.god` files under
+God Code shipped six stdlib scrolls as loose `.god` files under
 `godcode/scrolls/`, loaded only by the `IMPORT "name"` statement. The Scroll
 Registry turns scrolls into **installable, versioned packages**:
 
@@ -203,7 +203,7 @@ backward-compatibility promise, and the deprecation process live in
 
 ## The six stdlib scrolls, manifested
 
-The v2.0 stdlib scrolls (`math`, `strings`, `lists`, `time`, `prophecy`,
+The six stdlib scrolls (`math`, `strings`, `lists`, `time`, `prophecy`,
 `covenant`) each carry a `scroll.toml` in `godcode/scrolls/` and are
 published at `1.0.0` in the local registry, so the publish/install flow
 is real from day one — not just for community scrolls.

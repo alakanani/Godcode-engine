@@ -1,4 +1,4 @@
-# The Sandbox — Pillar 1 of God Code v3.0
+# The Sandbox — Pillar 1 of God Code
 
 `godcode run --sandbox scroll.god` executes a creation under a
 **deny-by-default policy**: everything that touches the world outside the
@@ -30,10 +30,10 @@ The sandbox withholds this power: the rite ASK would speak with the outer world 
 
 | Field | Default | Meaning |
 |---|---|---|
-| `allow_read_paths` | `None` (deny all) | Directories the creation may read files from. No file-reading rites exist in v2.0; enforced if any are added. |
-| `allow_write` | `False` | Filesystem writes. No file-writing rites exist in v2.0; enforced if any are added. |
+| `allow_read_paths` | `None` (deny all) | Directories the creation may read files from. No file-reading rites exist yet; enforced if any are added. |
+| `allow_write` | `False` | Filesystem writes. No file-writing rites exist yet; enforced if any are added. |
 | `allow_network` | `False` | Network access. The `HTTP_GET` rite (see §13) is the one network rite: when network is denied it is withheld and raises instead of reaching out. |
-| `allow_subprocess` | `False` | Spawning subprocesses. No subprocess rites exist in v2.0; enforced if any are added. |
+| `allow_subprocess` | `False` | Spawning subprocesses. No subprocess rites exist yet; enforced if any are added. |
 | `allow_stdin` | `False` | Whether the `ASK` rite may read from stdin. |
 | `allowed_import_paths` | `()` (deny all) | Directories `IMPORT` may draw scrolls from. A scroll is allowed when its real (symlink-resolved) path lies under one of these directories. |
 | `timeout_seconds` | `5.0` | Wall-clock grant for the whole run. |
@@ -61,7 +61,7 @@ guard = apply_policy(interpreter, policy)  # hooks onto an existing Interpreter
   outside `allowed_import_paths` is refused, including `..` traversals
   and symlinks (paths are resolved before the check).
 - **The ASK rite** — reading from stdin is refused unless
-  `allow_stdin=True`. (The only v2.0 rite with a host side effect.)
+  `allow_stdin=True`. (The only rite with a host side effect.)
 - **Step budget** — every statement dispatch and every expression
   evaluation counts one step; exceeding `max_steps` ends the run. This
   catches infinite `WHILE` cycles before the interpreter's own
@@ -72,7 +72,7 @@ guard = apply_policy(interpreter, policy)  # hooks onto an existing Interpreter
   fallback on platforms without `setitimer` or outside the main thread.
 - **Host-side witnesses** — the covenant ledger and the audit log are
   left unbound in sandboxed runs, because they write to the host world.
-  Since v4.0 the **Spirit is bound read-only** (the training dataset is
+  The **Spirit is bound read-only** (the training dataset is
   only ever read), so `CONSULT` and intent discernment work in guarded
   runs, and `ANCHOR` is served by an **ephemeral in-memory chain**: it is
   never refused under the deny-writes policy, but nothing it anchors is
@@ -94,7 +94,7 @@ This is an **in-process sandbox**: a cooperative audit of the
 tree-walking interpreter, not OS-level isolation.
 
 - It cannot contain a program that escapes the interpreter itself
-  (there is no known escape in the v2.0 walker, but in-process
+  (there is no known escape in the walker, but in-process
   sandboxing can never prove the absence of one).
 - It does not cap **memory**: a creation can still build enormous lists
   or strings within its step and time budgets.

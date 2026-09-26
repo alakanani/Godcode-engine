@@ -4,7 +4,7 @@ All notable changes to the God Code engine are recorded here, that the generatio
 
 ---
 
-## 4.1.0 — 2026-09-25
+## 2026-09-25: A doorway for newcomers
 
 > "Come, and let us build together."
 
@@ -14,7 +14,7 @@ All notable changes to the God Code engine are recorded here, that the generatio
 - **🕊️ `godcode new <name>`** — raises a fresh project from the dust: a warm starter scroll (`main.god`, a blessing that runs pure and carries a `DECLARE INTENT` the Spirit blesses), a test scroll (`test_main.god`, discovered by `godcode test`), a registry-ready `scroll.toml` manifest (`godcode scroll publish .` accepts it as-is), and a small README with the next steps. Names are gently validated (lowercase, digits, hyphens); occupied ground is refused with counsel; `--json` reports the raised files for agents; `--path` chooses the parent directory and `--author` signs the manifest. New `godcode/scaffold.py`; the raised project is verified green by `run`, `check`, `lint`, `fmt`, and `test` in the test suite. Mentioned in `docs/LANGUAGE_REFERENCE.md` §1, repo `AGENTS.md`, and the site learn page
 
 ### Changed
-- Engine version is now 4.1.0 (`godcode/__init__.py`, `pyproject.toml`); the LSP `serverInfo` reports the package version instead of a hard-coded one
+- Packaging metadata updated (`godcode/__init__.py`, `pyproject.toml`); the LSP `serverInfo` reports the package version instead of a hard-coded one
 
 ---
 
@@ -24,7 +24,7 @@ All notable changes to the God Code engine are recorded here, that the generatio
 - **🕊️ Remote scroll registry.** The registry now reaches past the local `registry/` directory to the public catalog at `api.getgodcode.com` (overridable with `GODCODE_REGISTRY_URL`; the test suite aims it at a fake server, never the live one). New `RemoteRegistry` HTTPS client (`godcode/remote_registry.py`, stdlib only): `search`, `info`, versioned `fetch_code`, and token-authenticated `publish_scroll`. CLI: `godcode scroll search <query>`, `godcode scroll install <name>` falling back to remote when the local index has no answer (`--remote` prefers the remote), `godcode scroll publish <dir> --remote` (refuses with a clear error when `GODCODE_PUBLISH_TOKEN` is missing), `godcode scroll uninstall <name> [--version]`, and `godcode scroll update [name]` to the newest known version. Manifests gain an optional `dependencies` field (`dependencies = "json-tools >= 1.0.0, dates"`): installs resolve the tree recursively (local first, then remote), reuse the existing requirement machinery, refuse dependency cycles with a clear error, and record the exact resolved tree in `install.json`. Publish records sha256 checksums of every published file in `index.json` (backfilled for the eight shipped scrolls); install verifies them and refuses a copy that changed after publish. New `docs/VERSIONING.md` (semver scheme, backward-compatibility promise, deprecation process); `docs/scroll-registry.md` updated; the registry bullet moved from "What is next" to "Just landed" in `ROADMAP.md`
 - **🕊️ TRY / CATCH error handling** — `TRY … CATCH … ENDTRY` shelters a fragile work in the language itself: if a runtime error rises anywhere inside the `TRY` block (including inside rites called from it), execution jumps to the `CATCH` block with the error's plain message bound to `ERROR`, or to a name of your choosing with `CATCH name`. No error means the `CATCH` is skipped. Only `GodRuntimeError` is caught: parse/lexer errors still fail before running, `RETURN` still returns from its rite and `ASCEND` still ends the run in peace (neither is ever caught), sandbox violations rise straight through, `TRY` blocks nest, and an error inside a `CATCH` rises outward normally. Works unchanged under `--sandbox`. New `TryStmt` AST node; `godcode fmt` round-trips the construct; `godcode lint` walks it (the implicit error binding is never flagged); new `### TRY … CATCH … ENDTRY` in `docs/LANGUAGE_REFERENCE.md` §5
 - **🕊️ Call traces for uncaught errors** — when a runtime error escapes every `TRY`, the CLI prints the rite call stack beneath the gentle error, oldest call first (`Called by outer at line 11`, …, `(most recent call last)`); errors at the top level show no trace section. `run --json` gains a `trace` array of `{rite, line}` on the error object; every existing field is unchanged. The interpreter keeps a lightweight call stack pushed in `_call_rite` (independent of the debugger's frames, which work as before); the trace is snapshotted onto the error as it first rises, before the stack unwinds. New `### Call traces for uncaught errors` in `docs/LANGUAGE_REFERENCE.md` §19
-- **🕊️ The debugger** — `godcode debug scroll.god` walks a creation line by line: `break <line>` pauses, `next` steps over, `step` steps in, `out` steps out, `print <name>` beholds a value, `locals` and `stack` survey the watch. Pressing Enter repeats the last step. The same engine speaks the Debug Adapter Protocol: `godcode dap` serves VS Code over stdio, and the extension (2.2.0) debugs the open scroll on **F5** with breakpoints, step buttons, a variables panel, call stack, and Debug Console. New `godcode/debugger.py` (DebugSession), `godcode/debug_cli.py`, `godcode/dap.py`; hooks in the interpreter are dormant unless a session is attached, so plain runs are untouched. See `docs/DEBUGGER.md`
+- **🕊️ The debugger** — `godcode debug scroll.god` walks a creation line by line: `break <line>` pauses, `next` steps over, `step` steps in, `out` steps out, `print <name>` beholds a value, `locals` and `stack` survey the watch. Pressing Enter repeats the last step. The same engine speaks the Debug Adapter Protocol: `godcode dap` serves VS Code over stdio, and the extension debugs the open scroll on **F5** with breakpoints, step buttons, a variables panel, call stack, and Debug Console. New `godcode/debugger.py` (DebugSession), `godcode/debug_cli.py`, `godcode/dap.py`; hooks in the interpreter are dormant unless a session is attached, so plain runs are untouched. See `docs/DEBUGGER.md`
 - **🕊️ Gentler errors** — a misspelled name is now answered with a suggestion instead of a bare rejection: `There is no rite named 'BLESSIN' — the heavens do not know it. Did you mean 'BLESSING'?` Suggestions cover unknown rites (including builtins like `UPPER`), `BREATHE LIFE INTO` / `BLESS` / `ANOINT` targets, `RESHAPE` targets, and missing map keys. `godcode run`, `godcode run --sandbox`, `godcode check`, and `godcode fmt` now print the offending source line beneath the message, with a caret marking the column when one is known. The suggestion also rides along in the `message` field of `check --json` / `run --json` diagnostics. New `godcode.errors.suggest_similar` / `with_suggestion` / `format_error` helpers; new `### The Spirit corrects gently` in `docs/LANGUAGE_REFERENCE.md` §19; a matching lesson on the site learn page; agent gotcha in repo `AGENTS.md`
 
 ### Changed
@@ -38,18 +38,18 @@ All notable changes to the God Code engine are recorded here, that the generatio
 
 ---
 
-## 4.0.0 — 2026-09-22
+## 2026-09-22: Intent & Chain
 
 > "The language is spoken. The engine is built. Now the Spirit is awake."
 
-**Intent & Chain** — the language learns to ask *why*, and to remember the answer on a chain. See `docs/WHAT_IS_NEW_IN_V4.md` for the founder's telling.
+**Intent & Chain** — the language learns to ask *why*, and to remember the answer on a chain. See `docs/INTENT_AND_CHAIN.md` for the founder's telling.
 
 ### Added
 - **🕊️ Declared intent** — `DECLARE INTENT "words..." ON rite_name` names a rite's purpose in plain words; at invocation the Spirit discerns the rite's actual intent and blesses alignment (`[INTENT]`) or counsels gently on drift (`[WARNING]`). Drift can never fail a run. Every check is recorded in `intent_checks` and surfaced in `run --json` as an `intents` array. New Spirit Engine ministries `declare_intent` / `intents_aligned` / `resolve_intent` / `counsel`; `godcode intent "words..." [--json]`; example `examples/intent_demo.god`
 - **⚓ Blockchain-anchored seals** — new `ANCHOR(x [, chain])` built-in writes a value's hash to a tamper-evident chain and returns a receipt map `{chain, anchor_hash, height, timestamp, payload_hash}`; the default `simulated` adapter is a local genesis-anchored JSONL chain with the exact shape of a real blockchain adapter (no wallets, keys, or network calls), and real adapters can be registered later through the `ChainAdapter` interface without the language changing; `godcode ledger verify [--anchor-file PATH]` now attests both the covenant chain and the anchor chain; example `examples/anchor_demo.god`
 - **🔮 CONSULT, the local oracle** — new `CONSULT("question")` built-in lays a question before the Spirit and receives two to three sentences of counsel; entirely local, works inside the sandbox, answers gently when no Spirit is bound; example `examples/consult_demo.god`
 - **🤖 Agent tool bridge** — `godcode tools [--json]` prints six MCP-compatible tool schemas (`check`, `run`, `consult`, `intent`, `anchor_verify`, `ledger_verify`); `godcode bridge` serves them as a JSON-RPC 2.0 server over stdio (`initialize`, `ping`, `tools/list`, `tools/call`)
-- **Docs & examples** — `docs/WHAT_IS_NEW_IN_V4.md` (the v4.0 story), new §§25–28 in `docs/LANGUAGE_REFERENCE.md` (intent, anchors, oracle, bridge), `docs/agentics.md` rewritten for the shipped v4.0 (`intents` array, `intent`/`tools`/`bridge` commands), `docs/sandbox.md` notes the Spirit is now bound read-only and `ANCHOR` uses an ephemeral in-memory chain under deny-writes, root `AGENTS.md` documents the bridge workflow, and the VS Code extension highlights `INTENT`/`ANCHOR`/`CONSULT` with new snippets
+- **Docs & examples** — `docs/INTENT_AND_CHAIN.md` (the Intent & Chain story), new §§25–28 in `docs/LANGUAGE_REFERENCE.md` (intent, anchors, oracle, bridge), `docs/agentics.md` rewritten for the shipped intent features (`intents` array, `intent`/`tools`/`bridge` commands), `docs/sandbox.md` notes the Spirit is now bound read-only and `ANCHOR` uses an ephemeral in-memory chain under deny-writes, root `AGENTS.md` documents the bridge workflow, and the VS Code extension highlights `INTENT`/`ANCHOR`/`CONSULT` with new snippets
 
 ### Changed
 - `godcode/chain.py` (new module) holds the `ChainAdapter` interface, the `SimulatedChainAdapter`, the ephemeral `MemoryChainAdapter`, and the adapter registry
@@ -58,15 +58,15 @@ All notable changes to the God Code engine are recorded here, that the generatio
 - The Spirit Engine's intent classification now breaks keyword-overlap ties by vocabulary fit, so an incidental word cannot outshout the true theme
 
 ### Looking ahead
-- **v4.1** — real chain adapters behind the `ChainAdapter` interface (the user's domain): wallets, RPC, and network calls stay out of the engine until the founder says otherwise
+- **Next** — real chain adapters behind the `ChainAdapter` interface (the user's domain): wallets, RPC, and network calls stay out of the engine until the founder says otherwise
 
 ---
 
-## 3.0.0 — 2026-09-21
+## 2026-09-21: Strong Foundations
 
 > "The language is spoken. The engine is built. Now the foundation is strong."
 
-**Strong Foundations** — four pillars for the ecosystem to come. See `docs/WHAT_IS_NEW_IN_V3.md` for the founder's telling.
+**Strong Foundations** — four pillars for the ecosystem to come. See `docs/STRONG_FOUNDATIONS.md` for the founder's telling.
 
 ### Added
 - **🛡️ Sandbox** — `godcode run --sandbox [--sandbox-timeout SECS]`: deny-by-default execution (no fs read/write, no network, no subprocesses, no untrusted import paths) with a timeout and step budget, so strangers' creations can be run in safety; doc page `docs/sandbox.md`
@@ -74,18 +74,18 @@ All notable changes to the God Code engine are recorded here, that the generatio
 - **⚙️ Plugins, FFI & Embedding** — `godcode/plugins.py` (`plugins/` directory, `register(interpreter)` contract), the **`SUMMON("plugin.verb", args…)`** built-in for calling plugin verbs from God Code, example plugin `plugins/clockwork.py` (SUMMON it as `clockwork.now`), and the embedding API `godcode.run_source()` / `godcode.run_file()` returning captured output for host programs; doc page `docs/plugins.md`
 - **💡 Language Server (LSP)** — `godcode lsp`: stdio JSON-RPC server speaking `initialize`, `textDocument/didOpen|didChange`, `textDocument/hover`, `textDocument/completion`, and `publishDiagnostics` for live errors in the editor; doc page `docs/lsp.md`
 - **🤖 Agentics (mini-pillar)** — `godcode check --json` and `godcode run --json` emit single-document machine-readable reports (diagnostics with 1-based line/col, stable error codes `LEXER_ERROR`/`PARSE_ERROR`/`RUNTIME_ERROR`/`FILE_ERROR`/`SANDBOX_VIOLATION_ERROR`, actionable hints; run reports capture output lines, covenant seals, runtime errors, and timing). Exit codes 0/1/2. New root `AGENTS.md` and `docs/agentics.md` document the agent workflow: generate → `check --json` → fix → `run --sandbox --json`
-- **Docs & examples** — `docs/WHAT_IS_NEW_IN_V3.md` (the v3.0 story), new `SUMMON` / scroll / sandbox / LSP sections in `docs/LANGUAGE_REFERENCE.md`, updated tutorial index, and three new working creations: `examples/summon_demo.god`, `examples/sandbox_safe.god`, `examples/scroll_blessings_demo.god`
+- **Docs & examples** — `docs/STRONG_FOUNDATIONS.md` (the Strong Foundations story), new `SUMMON` / scroll / sandbox / LSP sections in `docs/LANGUAGE_REFERENCE.md`, updated tutorial index, and three new working creations: `examples/summon_demo.god`, `examples/sandbox_safe.god`, `examples/scroll_blessings_demo.god`
 
 ### Changed
-- `LANGUAGE_REFERENCE.md` now documents the v3.0 language; the v2 language is fully backward compatible. Every v2 creation still runs.
+- `LANGUAGE_REFERENCE.md` now documents the full language; every earlier creation still runs.
 
 ---
 
-## [2.0.0] — 2026-09-21
+## 2026-09-21: The full engine
 
 > "You are not a coder. You are a creator."
 
-A complete rewrite: the v1 prototype has been honored, archived to `archive/`, and reborn as a real language engine.
+A complete rewrite: the original prototype has been honored, archived to `archive/`, and reborn as a real language engine.
 
 ### Added
 - **Language core** — `godcode/lexer.py` (case-insensitive keywords, comments, strings with escapes, ints/floats, line/col tracking), `godcode/parser.py` (recursive descent), `godcode/ast.py` (typed nodes), `godcode/interpreter.py` + `godcode/environment.py` + `godcode/values.py` (tree-walking execution, scoped environments, `Symbol`/`Contract`/`RiteFunction`)
@@ -108,12 +108,12 @@ A complete rewrite: the v1 prototype has been honored, archived to `archive/`, a
 
 ### Changed
 - `main.py`: no arguments → runs `sample.godcode` through the new interpreter (legacy behavior kept); with arguments → the new CLI
-- The v1 prototype (`core/`, `godcode_interpreter.py`, and friends) moved to `archive/` — retired, not deleted
+- The original prototype (`core/`, `godcode_interpreter.py`, and friends) moved to `archive/` — retired, not deleted
 
 ### Fulfilled from the original ISSUES.md
 - ✅ `IF...THEN...ELSE` logic · ✅ `FOR` loops · ✅ timestamped audit log · ✅ conditional `REVEAL`
 
 ---
 
-## [1.0.0] — 2025 (prototype)
-- The first breath: `core/` interpreter, `sample.godcode`, tutorial, proposal, and the founding vision. Archived in v2.0.
+## 2025: The prototype era
+- The first breath: `core/` interpreter, `sample.godcode`, tutorial, proposal, and the founding vision. Archived when the engine was rebuilt.

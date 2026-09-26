@@ -8,7 +8,7 @@ python3 bench/bench.py
 
 Date: 2026-09-25. Machine: AMD EPYC 9D25 126-Core Processor.
 Python 3.12.3 on Linux-7.0.0-38-generic-x86_64-with-glibc2.39.
-God Code 4.1.0, branch `feature/bench`.
+God Code, branch `feature/bench`.
 
 Mode: full. Seed 20260925. 2 warmup + 5 timed runs per benchmark.
 The reported number is the median of the timed runs.

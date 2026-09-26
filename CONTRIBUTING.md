@@ -16,7 +16,7 @@ Every contributor to God Code receives:
 
 ---
 
-## Folder Structure (v2.0)
+## Folder Structure
 
 - `godcode/` – the interpreter package: `lexer.py`, `parser.py`, `ast.py`, `interpreter.py`, `environment.py`, `values.py`, `errors.py`, `spirit.py`, `ledger.py`, `cli.py`
 - `godcode/scrolls/` – the standard library, written in God Code (`math`, `strings`, `lists`, `time`, `prophecy`, `covenant`)
@@ -24,7 +24,7 @@ Every contributor to God Code receives:
 - `tests/` – pytest suite
 - `playground/` – web playground
 - `docs/` – tutorial + full language reference
-- `archive/` – the honored v1 prototype
+- `archive/` – the honored original prototype
 - `logs/` – spiritual execution logs (`godcode.log`)
 - `main.py` – entry point (no args → runs `sample.godcode`)
 
@@ -49,9 +49,9 @@ Every contributor to God Code receives:
 
 ## Contribution Ideas
 
-- 🌱 See [ISSUES.md](./ISSUES.md) for the v2.1 roadmap: `ELSE IF` chains, string interpolation, dictionaries, `TRY`/`MERCY`, new scrolls, VS Code highlighting
+- 🌱 See [ISSUES.md](./ISSUES.md) for the roadmap: `ELSE IF` chains, string interpolation, dictionaries, `TRY`/`MERCY`, new scrolls, VS Code highlighting
 - 📜 Add a new scroll to `godcode/scrolls/` — written in God Code, tested, and documented in `docs/LANGUAGE_REFERENCE.md` §14
-- 💠 Add an example to `examples/`. Every creation must be valid v2.0 and runnable via `godcode run`
+- 💠 Add an example to `examples/`. Every creation must be valid and runnable via `godcode run`
 
 ---
 

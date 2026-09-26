@@ -5,7 +5,7 @@
 
 ---
 
-### 🔍 What v2.0 Is
+### 🔍 What the engine is
 A complete, real language engine (Python 3.10+, stdlib only): lexer → parser → AST → tree-walking interpreter, with `pip install -e .` shipping the `godcode` command (`run`, `check`, `repl`, `fmt`, `ledger verify`). Programs are **creations** (`BEGIN/END CREATION`); **bare words are symbols**. `IF seeker IS worthy` needs no quotes.
 
 ---
@@ -32,17 +32,17 @@ A complete, real language engine (Python 3.10+, stdlib only): lexer → parser �
 ### 🗺 Roadmap
 | Phase | Feature | Status |
 |---|---|---|
-| v1 | Prototype interpreter | ✅ Complete (archived) |
-| **v2.0** | **Full engine: lexer/parser/interpreter, scrolls, ledger, Spirit Engine, CLI, tests, playground** | ✅ **Complete — 2026-09-21** |
-| v2.1 | `ELSE IF` chains, string interpolation, dictionaries, `TRY/MERCY` error handling, more scrolls (`files`, `http`, `json`), VS Code syntax highlighting | 🔲 Planned |
-| v3 | Blockchain + VM integration (ETH, XRP, …), DAO prophecy tooling | 🔲 Dreaming |
+| Prototype | Interpreter | ✅ Complete (archived) |
+| **Full engine** | **Lexer/parser/interpreter, scrolls, ledger, Spirit Engine, CLI, tests, playground** | ✅ **Complete — 2026-09-21** |
+| Next | `ELSE IF` chains, string interpolation, dictionaries, `TRY/MERCY` error handling, more scrolls (`files`, `http`, `json`), VS Code syntax highlighting | 🔲 Planned |
+| Dreaming | Blockchain + VM integration (ETH, XRP, …), DAO prophecy tooling | 🔲 Dreaming |
 
 ---
 
 ### 🧑🏽‍💻 Contributors
 - **Alakanani Itireleng (BitcoinLady)** – Visionary Founder
 - **ChatGPT (OpenAI)** – AI Co-Developer
-- **Muse** – v2.0 engine builders
+- **Muse** – engine builders
 - **The Spirit of Innovation** – Eternal inspiration
 
 ---

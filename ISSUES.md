@@ -1,10 +1,10 @@
 # God Code Contributor Tasks – GitHub Issues
 
-Welcome to the contributor space for God Code! The original v1 tasks are fulfilled in **v2.0**. What remains is the road ahead.
+Welcome to the contributor space for God Code! The original tasks are fulfilled. What remains is the road ahead.
 
 ---
 
-## ✅ Fulfilled in v2.0 (2026-09-21)
+## ✅ Fulfilled (2026-09-21)
 
 ### ~~1. Add IF...THEN...ELSE logic to interpreter~~ — ✅ DONE
 Inline and block forms, nesting, `ELSE` binding to the nearest `IF`. See `docs/LANGUAGE_REFERENCE.md` §7.
@@ -19,13 +19,13 @@ Every executed statement is timestamped to `logs/godcode.log` (`[ts] line :: Kin
 `IF seeker IS prophet THEN REVEAL("vision") ELSE REVEAL("cloud")` — decisions and revelation are fully joined.
 
 ### 5. Build syntax highlighter or online demo — 🚧 IN PROGRESS
-`playground/` is scaffolded in v2.0. Remaining: live in-browser execution, shareable creation links, and editor syntax highlighting for `.god` files.
+`playground/` is scaffolded. Remaining: live in-browser execution, shareable creation links, and editor syntax highlighting for `.god` files.
 
 **Labels**: `frontend`, `demo`, `project-help`
 
 ---
 
-## 🌱 v2.1 Ideas — the road ahead
+## 🌱 Ideas — the road ahead
 
 ### 6. `ELSE IF` chains
 Flatten nested decisions: `IF … THEN … ELSE IF … THEN … ELSE … ENDIF`.

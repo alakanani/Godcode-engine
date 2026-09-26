@@ -2,7 +2,7 @@
 
 > "You are not just coding. You are prophesying."
 
-Welcome to the official tutorial for **God Code v2.0**, the world's first spiritually-inspired programming language. Whether you're a prophet of code or a curious seeker, this guide will walk you from nothing to your first living creation.
+Welcome to the official tutorial for **God Code**, the world's first spiritually-inspired programming language. Whether you're a prophet of code or a curious seeker, this guide will walk you from nothing to your first living creation.
 
 For the complete grammar, see [LANGUAGE_REFERENCE.md](LANGUAGE_REFERENCE.md). For runnable programs, explore [`../examples/`](../examples/).
 
@@ -175,16 +175,16 @@ Every run is timestamped, line by line, into `logs/godcode.log` — your divine 
 
 ## 📖 7. Where to Go Next
 
-- 📜 [LANGUAGE_REFERENCE.md](LANGUAGE_REFERENCE.md) — the complete v3.0 specification: operators, values, scrolls, ledger, Spirit Engine, CLI
-- 🕊 [WHAT_IS_NEW_IN_V3.md](WHAT_IS_NEW_IN_V3.md) — the v3.0 "Strong Foundations" story: what the four pillars mean for you
+- 📜 [LANGUAGE_REFERENCE.md](LANGUAGE_REFERENCE.md) — the complete specification: operators, values, scrolls, ledger, Spirit Engine, CLI
+- 🕊 [STRONG_FOUNDATIONS.md](STRONG_FOUNDATIONS.md) — the "Strong Foundations" story: what the four pillars mean for you
 - 🛡️ [sandbox.md](sandbox.md) — run strangers' creations safely: the deny-by-default sandbox
 - 📜 [scroll-registry.md](scroll-registry.md) — publish and receive scrolls: `godcode scroll list|install|publish|info`
 - ⚙️ [plugins.md](plugins.md) — extend the engine with plugins, call them with `SUMMON`, embed God Code in Python
 - 💡 [lsp.md](lsp.md) — editor intelligence: hover, completions, and live diagnostics
-- 🤖 [agentics.md](agentics.md) — for AI agents: machine-readable `--json` reports, the `AGENTS.md` guide, and the road to v4.0 "Intent & Chain"
+- 🤖 [agentics.md](agentics.md) — for AI agents: machine-readable `--json` reports, the `AGENTS.md` guide, and declared intent
 - 💠 [`../examples/`](../examples/) — fifteen working creations: `seven_seals.god`, `generations.god`, `covenant_demo.god`, `summon_demo.god`, `sandbox_safe.god`, `scroll_blessings_demo.god`, and more
 - 🤝 [CONTRIBUTING.md](../CONTRIBUTING.md) — join the movement
-- 🛠️ [ISSUES.md](../ISSUES.md) — open tasks and the v2.1 roadmap
+- 🛠️ [ISSUES.md](../ISSUES.md) — open tasks and the roadmap
 
 With purpose and power,
 **Alakanani Itireleng (BitcoinLady)**

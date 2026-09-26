@@ -1,6 +1,6 @@
 (* ============================================================
    God Code: EBNF grammar
-   Mirrors godcode/parser.py as implemented (v4.0 engine).
+   Mirrors godcode/parser.py as implemented (the current engine).
    Nothing here is aspirational: every production below is accepted
    by the parser, and every statement the parser accepts appears below.
 

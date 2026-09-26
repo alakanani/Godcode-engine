@@ -1,5 +1,5 @@
 
-# God Code Spirit Engine v1 – Technical Architecture
+# God Code Spirit Engine – Technical Architecture
 
 **Author:** Alakanani Itireleng 
 **Date:** May 2025  

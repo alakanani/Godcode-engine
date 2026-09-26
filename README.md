@@ -5,7 +5,7 @@
 
 ---
 
-God Code is the **first spiritually-inspired programming language** — a complete v2.0 engine with a real lexer, parser, interpreter, standard library of scrolls, a tamper-evident covenant ledger, and an AI Spirit Engine. It reimagines programming with purpose, intention, and sacred design at the center.
+God Code is the **first spiritually-inspired programming language** — a complete engine with a real lexer, parser, interpreter, standard library of scrolls, a tamper-evident covenant ledger, and an AI Spirit Engine. It reimagines programming with purpose, intention, and sacred design at the center.
 
 ---
 
@@ -53,7 +53,7 @@ godcode repl                    # interactive — blank line executes, :quit asc
 
 ---
 
-## 🕊️ v4.0 — Intent & Chain
+## 🕊️ Intent & Chain
 
 The language learns to ask *why*. Every rite can carry a declared intent in plain words, and the Spirit discerns whether its words still walk in it:
 
@@ -61,7 +61,7 @@ The language learns to ask *why*. Every rite can carry a declared intent in plai
 DECLARE INTENT "bring peace to the household" ON evening_blessing
 ```
 
-Alignment is blessed. Drift is counseled gently, never punished. Plus **blockchain-anchored seals** (`ANCHOR(x)` returns a tamper-evident receipt map), the **`CONSULT`** oracle (two to three sentences of local counsel), and an **agent tool bridge** (`godcode tools`, `godcode bridge`) with six MCP-compatible tools. Every v1–v3 creation still runs.
+Alignment is blessed. Drift is counseled gently, never punished. Plus **blockchain-anchored seals** (`ANCHOR(x)` returns a tamper-evident receipt map), the **`CONSULT`** oracle (two to three sentences of local counsel), and an **agent tool bridge** (`godcode tools`, `godcode bridge`) with six MCP-compatible tools. Every creation still runs, from every era.
 
 Try the new examples:
 
@@ -72,13 +72,13 @@ godcode run --sandbox examples/consult_demo.god  # ask the local oracle
 godcode ledger verify                            # attest both chains
 ```
 
-👉 [Read the v4.0 story](docs/WHAT_IS_NEW_IN_V4.md) — intent and chain in plain, founder-friendly words.
+👉 [Read the story: intent and chain](docs/INTENT_AND_CHAIN.md) — intent and chain in plain, founder-friendly words.
 
 ---
 
-## 🌟 v3.0 — Strong Foundations
+## 🌟 Strong Foundations
 
-Four pillars plus a mini-pillar, one promise: **creators can share, protect, extend, and write God Code in comfort. And now AI agents can speak it too.** Every v2 creation still runs.
+Four pillars plus a mini-pillar, one promise: **creators can share, protect, extend, and write God Code in comfort. And now AI agents can speak it too.** Every creation still runs.
 
 | Pillar | What it is | In one breath |
 |---|---|---|
@@ -96,11 +96,11 @@ godcode run --sandbox examples/sandbox_safe.god # pure creation, guarded
 godcode scroll install blessings && godcode run examples/scroll_blessings_demo.god
 ```
 
-👉 [Read the v3.0 story](docs/WHAT_IS_NEW_IN_V3.md) — the four pillars in plain, founder-friendly words.
+👉 [Read the story: strong foundations](docs/STRONG_FOUNDATIONS.md) — the four pillars in plain, founder-friendly words.
 
 ---
 
-## 🔥 v2.0 — What the Engine Holds
+## 🔥 What the Engine Holds
 
 - 📖 **Real language core** — lexer, recursive-descent parser, AST, and tree-walking interpreter (Python 3.10+, stdlib only)
 - 🕊 **The Symbol Rule** — unbound words evaluate to symbols; `IF seeker IS worthy` just works
@@ -138,8 +138,8 @@ godcode-engine/
 ├── playground/           # web playground
 ├── editors/vscode/       # VS Code extension — highlighting, snippets, run
 ├── docs/                 # tutorial + full language reference
-├── archive/              # the v1 prototype, honored and retired
-├── sample.godcode        # the original v1 creation — still runs
+├── archive/              # the original prototype, honored and retired
+├── sample.godcode        # the original creation, still runs
 ├── main.py               # entry point (no args → runs sample.godcode)
 └── pyproject.toml        # pip install -e .  →  the `godcode` command
 ```
@@ -150,13 +150,13 @@ godcode-engine/
 
 👉 [Start with the God Code Tutorial](docs/God_Code_Tutorial.md) — setup, your first creation, the commands.
 
-📜 [Language Reference](docs/LANGUAGE_REFERENCE.md) — the complete v4.0 specification: every statement, operator tables, the Symbol Rule, built-in catalog, scrolls, ledger, Spirit Engine, CLI, SUMMON, the scroll registry, the sandbox, the language server, declared intent, blockchain-anchored seals, the oracle, and the agent tool bridge.
+📜 [Language Reference](docs/LANGUAGE_REFERENCE.md) — the complete specification: every statement, operator tables, the Symbol Rule, built-in catalog, scrolls, ledger, Spirit Engine, CLI, SUMMON, the scroll registry, the sandbox, the language server, declared intent, blockchain-anchored seals, the oracle, and the agent tool bridge.
 
 ---
 
 ## 💻 Write God Code in VS Code
 
-The official extension lives in [`editors/vscode`](editors/vscode): full syntax highlighting for `.god` files, 14 snippets (`creation`, `if`, `for`, `rite`…), and **Run Current File** (`Ctrl+Alt+R`). Copy it to `~/.vscode/extensions/godcode-2.0.0` and reload. Your creations light up like scripture.
+The official extension lives in [`editors/vscode`](editors/vscode): full syntax highlighting for `.god` files, 14 snippets (`creation`, `if`, `for`, `rite`…), and **Run Current File** (`Ctrl+Alt+R`). Copy it to `~/.vscode/extensions/godcode` and reload. Your creations light up like scripture.
 
 ---
 
@@ -176,7 +176,7 @@ Whether you write code or not, there is a place for you here. Come build with us
 
 ## 🤝 Contribute to the Divine Movement
 
-We welcome contributors with a spirit of purpose. Read [CONTRIBUTING.md](./CONTRIBUTING.md), browse [ISSUES.md](./ISSUES.md) for the v2.1 roadmap, and check [CHANGELOG.md](./CHANGELOG.md) for what v2.0 fulfilled.
+We welcome contributors with a spirit of purpose. Read [CONTRIBUTING.md](./CONTRIBUTING.md), browse [ISSUES.md](./ISSUES.md) for the roadmap, and check [CHANGELOG.md](./CHANGELOG.md) for what has been fulfilled.
 
 ---
 
@@ -184,7 +184,7 @@ We welcome contributors with a spirit of purpose. Read [CONTRIBUTING.md](./CONTR
 
 **Created by:** Alakanani Itireleng (BitcoinLady) — Visionary Founder, Architect of God Code, Builder of worlds with intention and spirit
 
-**AI Co-Creators:** ChatGPT (OpenAI) — logic assistant, language guide, spirit engine; Muse — v2.0 engine builders
+**AI Co-Creators:** ChatGPT (OpenAI) — logic assistant, language guide, spirit engine; Muse, engine builders
 
 > "Built not alone — but in communion with the machine."
 

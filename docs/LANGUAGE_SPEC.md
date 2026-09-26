@@ -581,16 +581,12 @@ sandbox, a cooperative audit of the tree-walker, not OS-level isolation.
 It cannot contain a hostile program that escapes the interpreter, and it
 cannot cap memory.
 
-## 12. Versioning and compatibility promise
+## 12. Compatibility promise
 
-God Code is pre-1.0. Breaking changes to the language are possible before
-1.0, and they will be communicated in release notes and the changelog
-(the repo keeps `CHANGELOG.md` at its root, with an `Unreleased` section
-for what is coming). The engine's current release number is 4.0.0; the
-1.0 milestone named here is the language-stability milestone, and it has
-not been reached yet.
-
-After 1.0 the intent is semantic versioning: patch releases fix without
-changing the language, minor releases add without breaking, and major
-releases are the only ones allowed to break. The full versioning policy
-will be formalized before 1.0.
+God Code is still growing, so breaking changes to the language are
+possible while it matures. Every breaking change is announced in the
+changelog, which is kept by date, not by release number (the repo keeps
+`CHANGELOG.md` at its root, with an `Unreleased` section for what is
+coming). The guiding promise: creations you write today will keep running
+as the language grows, and anything that breaks that promise is treated
+as a bug.

@@ -5,7 +5,7 @@ Syntax highlighting, smart indentation, snippets, and one-key running of `.god` 
 
 ## Features
 
-- 🌈 Full syntax highlighting for God Code v2 (creation blocks, spirit commands, control flow, built-ins)
+- 🌈 Full syntax highlighting for God Code (creation blocks, spirit commands, control flow, built-ins)
 - ✍️ Snippets: `creation`, `declare`, `reveal`, `breathe`, `if`, `for`, `while`, `rite`, `invoke`, `testify`, `seal`, `import`, `bless`, `prophesy`
 - ▶️ **God Code: Run Current File** (`Ctrl+Alt+R` / `Cmd+Alt+R`) — runs the open file and shows output in the God Code panel
 - ✔️ **God Code: Check Syntax of Current File** — parses without executing
@@ -24,14 +24,14 @@ pip install -e .
 ## Install this extension
 
 **Option A — from source (today):**
-1. Copy the `editors/vscode` folder to `~/.vscode/extensions/godcode-2.0.0`
+1. Copy the `editors/vscode` folder to `~/.vscode/extensions/godcode`
 2. Reload VS Code. `.god` files light up immediately
 
 **Option B — package it:**
 ```bash
 npm install -g @vscode/vsce
 cd editors/vscode && vsce package
-# then: code --install-extension godcode-2.0.0.vsix
+# then: code --install-extension <the .vsix file vsce produced>
 ```
 
 **Option C — marketplace:** coming soon 🕊

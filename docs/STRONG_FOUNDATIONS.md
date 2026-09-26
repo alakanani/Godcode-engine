@@ -1,8 +1,8 @@
-# 🕊 What's New in God Code v3.0 — Strong Foundations
+# 🕊 Strong Foundations
 
 > "First the language was born. Then the engine was built. Now, the foundation is made strong."
 
-God Code v1 was the vision. v2 was the engine — a real lexer, parser, interpreter, scrolls, and a covenant ledger. **v3.0 is the foundation you build an ecosystem on.** Four pillars, one purpose: creators should be able to **share** their work, **protect** their world, **extend** the language, and **build in comfort**.
+The vision came first. Then the engine: a real lexer, parser, interpreter, scrolls, and a covenant ledger. **Strong Foundations is the ground an ecosystem is built on.** Four pillars, one purpose: creators should be able to **share** their work, **protect** their world, **extend** the language, and **build in comfort**.
 
 You don't need to be a developer to feel what these mean. Each pillar is a promise:
 
@@ -52,7 +52,7 @@ godcode scroll list
 DECLARE the_hour AS SUMMON("clockwork.now")
 ```
 
-And for developers who want God Code *inside* their own Python programs, v3 opens the **embedding API**: `godcode.run_source()` and `godcode.run_file()` execute God Code and return the captured output — no subprocess, no ceremony.
+And for developers who want God Code *inside* their own Python programs, the **embedding API** opens the way: `godcode.run_source()` and `godcode.run_file()` execute God Code and return the captured output — no subprocess, no ceremony.
 
 **In plain words:** God Code no longer lives only in its own temple. It can step outside. And Python can step in.
 
@@ -80,7 +80,7 @@ godcode lsp     # speaks JSON-RPC over stdio: initialize, hover, completion, dia
 
 **What it is:** God Code, made legible to AI agents. `godcode check --json` and `godcode run --json` emit single-document, machine-readable reports — structured diagnostics with line, column, stable error codes, and hints — so a coding agent can generate a creation, validate it, fix it, and run it without ever parsing human prose. A new [`AGENTS.md`](../AGENTS.md) at the repo root tells agents exactly how to work with the language.
 
-**Why it matters:** the founder's corrected vision — not *Argentina*, **agentics**. The next generation of software is written by agents, and a language agents can speak fluently is a language that travels. This mini-pillar is the first step toward v4.0, "Intent & Chain," where every agent action becomes a sealed covenant on the ledger.
+**Why it matters:** the founder's corrected vision — not *Argentina*, **agentics**. The next generation of software is written by agents, and a language agents can speak fluently is a language that travels. This mini-pillar is the first step toward [Intent & Chain](INTENT_AND_CHAIN.md), where every agent action becomes a sealed covenant on the ledger.
 
 **In plain words:** God Code learns to talk to the machines that will write it.
 
@@ -95,7 +95,7 @@ godcode run --sandbox --json creation.god  # safe execution, machine-readable
 
 ## 🌱 What this means for the movement
 
-v3.0 doesn't change how God Code *feels* to write. Every v2 creation still runs. What changes is what creators can **do together**: publish scrolls for others, run strangers' code in safety, extend the engine with plugins, and write in editors that understand the language.
+Strong Foundations doesn't change how God Code *feels* to write. Every creation still runs. What changes is what creators can **do together**: publish scrolls for others, run strangers' code in safety, extend the engine with plugins, and write in editors that understand the language.
 
 The language is spoken. The engine is built. **Now the foundation is strong. And the building can begin.**
 
