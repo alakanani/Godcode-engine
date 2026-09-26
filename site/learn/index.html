@@ -139,6 +139,16 @@ REVEAL(BLESSING("seeker"))</pre>
 REVEAL(SQRT(144))
 REVEAL(FACTORIAL(7))</pre>
     </div>
+    <h3>Shelter a fragile work</h3>
+    <div class="code-card">
+      <div class="code-head">✦ shelter.god</div>
+      <pre class="code godcode">TRY
+  DECLARE share AS 10 / 0
+CATCH
+  REVEAL("caught: " + ERROR)
+ENDTRY</pre>
+    </div>
+    <p><code>TRY</code> shelters a fragile work: if it stumbles, the run does not end. Execution moves to <code>CATCH</code> with the plain message bound to <code>ERROR</code> (or a name of your choosing, as in <code>CATCH trouble</code>). <code>BREAK</code> releases a loop at once; <code>CONTINUE</code> turns its wheel to the next turn. The <a href="../playground/">playground</a> speaks them too, with a ready-made "Sheltered by Grace" creation.</p>
     <a class="try" href="../playground/">Try them all in the playground →</a>
 
     <h2>🧰 5. Your tools</h2>
@@ -188,7 +198,7 @@ REVEAL(FACTORIAL(7))</pre>
 
 <script>
 (function(){
-  var KW="BEGIN CREATION END DECLARE AS BREATHE LIFE INTO REVEAL PROPHESY ASCEND IF THEN ELSE ENDIF FOR IN ENDFOR WHILE DO ENDWHILE DEFINE RITE INVOKE RETURN IMPORT IS NOT AND OR REFLECT BLESS ANOINT SEAL TESTIFY TRUE FALSE VOID LEN STR NUM TYPE RANDOM RANGE PUSH UPPER LOWER SPLIT JOIN ASK BEHOLD REVERSE contract".split(" ");
+  var KW="BEGIN CREATION END DECLARE AS BREATHE LIFE INTO REVEAL PROPHESY ASCEND IF THEN ELSE ENDIF FOR IN ENDFOR WHILE DO ENDWHILE DEFINE RITE INVOKE RETURN IMPORT TRY CATCH ENDTRY BREAK CONTINUE IS NOT AND OR REFLECT BLESS ANOINT SEAL TESTIFY TRUE FALSE VOID LEN STR NUM TYPE RANDOM RANGE PUSH UPPER LOWER SPLIT JOIN ASK BEHOLD REVERSE contract".split(" ");
   var RE=new RegExp("(#[^\\n]*)|(\"(?:[^\"\\\\\\n]|\\\\.)*\"?)|(\\b\\d+(?:\\.\\d+)?\\b)|(\\b(?:"+KW.join("|")+")\\b)","gi");
   function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
   document.querySelectorAll("pre.godcode").forEach(function(pre){

@@ -136,11 +136,14 @@ class GodError extends Error {
 }
 class ReturnSignal { constructor(value){ this.value=value; } }  // thrown by RETURN, caught at rite boundary
 class AscendSignal {}                                            // thrown by ASCEND, caught at run()
+class BreakSignal {}                                             // thrown by BREAK, caught by the enclosing loop
+class ContinueSignal {}                                          // thrown by CONTINUE, caught by the enclosing loop
 
 // Keywords are matched case-insensitively (canonical form = UPPER); idents keep case.
 const KEYWORDS = new Set((
   "BEGIN CREATION END DECLARE AS BREATHE LIFE INTO REVEAL PROPHESY ASCEND " +
   "IF THEN ELSE ENDIF FOR IN ENDFOR WHILE DO ENDWHILE DEFINE RITE INVOKE RETURN IMPORT " +
+  "TRY CATCH ENDTRY BREAK CONTINUE " +
   "IS NOT AND OR REFLECT BLESS ANOINT SEAL TESTIFY TRUE FALSE").split(" "));
 
 function lex(source){
@@ -208,7 +211,7 @@ function lex(source){
 
 /* ---------------- 2. PARSER (recursive descent) ---------------- */
 class Parser{
-  constructor(tokens){ this.t=tokens; this.i=0; }
+  constructor(tokens){ this.t=tokens; this.i=0; this.loopDepth=0; }
   peek(){ return this.t[this.i]; }
   peek2(){ return this.t[this.i+1] || {type:"EOF"}; }
   next(){ return this.t[this.i++]; }
@@ -267,6 +270,19 @@ class Parser{
       case "IF":     return this.parseIf();
       case "FOR":    return this.parseFor();
       case "WHILE":  return this.parseWhile();
+      case "TRY":    return this.parseTry();
+      case "BREAK": {
+        this.next();
+        if(this.loopDepth===0) throw new GodError(
+          "BREAK can only be used inside a loop. It was spoken with no cycle to release. Place it within a FOR or a WHILE.", t.line, t.col);
+        return {kind:"Break", line:t.line};
+      }
+      case "CONTINUE": {
+        this.next();
+        if(this.loopDepth===0) throw new GodError(
+          "CONTINUE can only be used inside a loop. It was spoken with no cycle to turn. Place it within a FOR or a WHILE.", t.line, t.col);
+        return {kind:"Continue", line:t.line};
+      }
       case "DEFINE": return this.parseRite();
       case "RETURN": {
         this.next(); let ex=null;
@@ -327,13 +343,16 @@ class Parser{
     this.expect("IN","IN");
     const iter=this.parseExpr();
     let body;
-    if(this.at("NEWLINE")){                                 // block form; ENDFOR optional (legacy runs to END)
-      this.next();
-      body=this.parseStatements(new Set(["ENDFOR","END","EOF"]));
-      if(this.at("ENDFOR")) this.next();
-    }else{
-      body=[this.parseStatement()];                          // inline form
-    }
+    this.loopDepth++;
+    try{
+      if(this.at("NEWLINE")){                                 // block form; ENDFOR optional (legacy runs to END)
+        this.next();
+        body=this.parseStatements(new Set(["ENDFOR","END","EOF"]));
+        if(this.at("ENDFOR")) this.next();
+      }else{
+        body=[this.parseStatement()];                          // inline form
+      }
+    }finally{ this.loopDepth--; }
     return {kind:"For", var:nm.value, iter, body, line:t.line};
   }
   parseWhile(){
@@ -341,14 +360,31 @@ class Parser{
     const cond=this.parseExpr();
     this.expect("DO","DO");
     let body;
-    if(this.at("NEWLINE")){
-      this.next();
-      body=this.parseStatements(new Set(["ENDWHILE","EOF"]));
-      this.expect("ENDWHILE","ENDWHILE");
-    }else{
-      body=[this.parseStatement()];
-    }
+    this.loopDepth++;
+    try{
+      if(this.at("NEWLINE")){
+        this.next();
+        body=this.parseStatements(new Set(["ENDWHILE","EOF"]));
+        this.expect("ENDWHILE","ENDWHILE");
+      }else{
+        body=[this.parseStatement()];
+      }
+    }finally{ this.loopDepth--; }
     return {kind:"While", cond, body, line:t.line};
+  }
+  parseTry(){
+    const t=this.expect("TRY");
+    if(!this.at("NEWLINE")) throw new GodError(
+      "TRY opens a block: place its works on the following lines, then CATCH ... ENDTRY.", t.line, t.col);
+    this.next();
+    const tryB=this.parseStatements(new Set(["CATCH","EOF"]));
+    this.expect("CATCH","CATCH");
+    let name="ERROR";                                          // the error's plain message is bound here
+    if(this.at("IDENT")) name=this.next().value;
+    if(this.at("NEWLINE")) this.next();
+    const catchB=this.parseStatements(new Set(["ENDTRY","EOF"]));
+    this.expect("ENDTRY","ENDTRY");
+    return {kind:"Try", try:tryB, catch:catchB, name, line:t.line};
   }
   parseRite(){
     const t=this.expect("DEFINE");
@@ -744,7 +780,15 @@ class Interpreter{
         else if(it instanceof Sym) items=[...it.name];
         else throw new GodError("cannot journey through "+typeName(it)+" — FOR needs a list or a word.",n.line);
         const had=env.map.has(n.var), old=had?env.map.get(n.var):undefined;
-        for(const item of items){ env.define(n.var,item); this.execBlock(n.body,env); }
+        for(const item of items){
+          env.define(n.var,item);
+          try{ this.execBlock(n.body,env); }
+          catch(e){
+            if(e instanceof ContinueSignal) continue;          // the condition is weighed again for the next turn
+            if(e instanceof BreakSignal) break;                // the cycle ends at once
+            throw e;
+          }
+        }
         if(had) env.define(n.var,old); else env.map.delete(n.var);   // restore the traveler's name
         break;
       }
@@ -752,10 +796,30 @@ class Interpreter{
         let guard=100000;
         while(truthy(this.eval(n.cond,env))){
           if(guard--<=0) throw new GodError("the cycle is endless — WHILE has turned 100,000 times without rest.",n.line);
-          this.execBlock(n.body,env);
+          try{ this.execBlock(n.body,env); }
+          catch(e){
+            if(e instanceof ContinueSignal) continue;
+            if(e instanceof BreakSignal) break;
+            throw e;
+          }
         }
         break;
       }
+      case "Try": {
+        // Only GodError is caught: RETURN still returns from its rite, ASCEND still
+        // ends the run in peace, and BREAK/CONTINUE still reach their loop. Errors in
+        // the CATCH body are outside this shelter, so they rise outward normally.
+        try{ this.execBlock(n.try,env); }
+        catch(e){
+          if(e instanceof GodError){
+            env.define(n.name,e.message);                     // the error's plain message, bound for the CATCH
+            this.execBlock(n.catch,env);
+          }else throw e;
+        }
+        break;
+      }
+      case "Break":    throw new BreakSignal();
+      case "Continue": throw new ContinueSignal();
       case "RiteDef": env.define(n.name,new Rite(n.name,n.params,n.body,env)); break;
       case "Return":  throw new ReturnSignal(n.expr?this.eval(n.expr,env):null);
       case "Import": {
@@ -860,7 +924,13 @@ class Interpreter{
     const cenv=new Env(rite.closure);
     rite.params.forEach((p,i)=>cenv.define(p,args[i]));
     try{ this.execBlock(rite.body,cenv); }
-    catch(e){ if(e instanceof ReturnSignal) return e.value; throw e; }
+    catch(e){
+      if(e instanceof ReturnSignal) return e.value;
+      if(e instanceof BreakSignal||e instanceof ContinueSignal)
+        throw new GodError((e instanceof BreakSignal?"BREAK":"CONTINUE")+
+          " cannot cross the threshold of a rite. It may only release a loop within rite '"+rite.name+"' itself.",line);
+      throw e;
+    }
     return null;                                                     // a rite with no RETURN yields void
   }
 }
@@ -1107,6 +1177,42 @@ REVEAL("grace upon {name}")
 REVEAL("{loaves} loaves feed {loaves * 1000}")
 REVEAL("shouted: {UPPER(name)}")
 REVEAL("a plain {{ brace }} stays a brace")
+END CREATION`},
+{id:"shelter",label:"Sheltered by Grace (TRY/CATCH)",code:
+`BEGIN CREATION
+# TRY shelters a fragile work; CATCH receives its plain message as ERROR.
+TRY
+    DECLARE share AS 10 / 0
+    REVEAL("this line is never reached")
+CATCH
+    REVEAL("caught: {ERROR}")
+ENDTRY
+
+# CATCH can name the binding itself, and shelters rites too.
+DEFINE RITE RISKY(n)
+    IF n < 0 THEN
+        DECLARE oops AS 1 / 0
+    ENDIF
+    RETURN n * 2
+END RITE
+
+TRY
+    REVEAL(RISKY(-3))
+CATCH trouble
+    REVEAL("the rite stumbled: {trouble}")
+ENDTRY
+REVEAL("the run goes on in peace")
+
+# BREAK releases a loop, CONTINUE turns its wheel again.
+FOR n IN [1, 2, 3, 4, 5]
+    IF n IS 4 THEN
+        BREAK
+    ENDIF
+    IF n IS 2 THEN
+        CONTINUE
+    ENDIF
+    REVEAL("counted {n}")
+ENDFOR
 END CREATION`},
 ];
 
